@@ -23,7 +23,6 @@ import fire
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-
 if TYPE_CHECKING:
     from transformers import PreTrainedModel
 
@@ -45,8 +44,12 @@ def quantize_pissa(
     if isinstance(lora_target, str):
         lora_target = [name.strip() for name in lora_target.split(",")]
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True, torch_dtype="auto")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path, trust_remote_code=True
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name_or_path, trust_remote_code=True, torch_dtype="auto"
+    )
 
     lora_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
@@ -54,7 +57,9 @@ def quantize_pissa(
         lora_alpha=lora_alpha if lora_alpha is not None else lora_rank * 2,
         lora_dropout=lora_dropout,
         target_modules=lora_target,
-        init_lora_weights="pissa" if pissa_iter == -1 else "pissa_niter_{}".format(pissa_iter),
+        init_lora_weights="pissa"
+        if pissa_iter == -1
+        else "pissa_niter_{}".format(pissa_iter),
     )
 
     # Init PiSSA model
@@ -62,7 +67,9 @@ def quantize_pissa(
     pissa_dir = os.path.join(output_dir, "pissa_init")
 
     # Save PiSSA model
-    setattr(peft_model.peft_config["default"], "init_lora_weights", True)  # don't apply pissa again
+    setattr(
+        peft_model.peft_config["default"], "init_lora_weights", True
+    )  # don't apply pissa again
     peft_model.save_pretrained(pissa_dir, safe_serialization=save_safetensors)
     print("Adapter weights saved in {}".format(pissa_dir))
 

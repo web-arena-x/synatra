@@ -13,7 +13,7 @@ This repository is divided into two parts:
 - **Train**: contains training code Synatra-CodeLlama-7B and all other experimented models in the paper.
 
 - **Evaluation**: contains evaluation code on all benchmarks we tested in the paper.
-  
+
 ## Dataset Download
 - **Synatra**: Download Synatra's 100k synthesized trajectories from [huggingface](https://huggingface.co/datasets/oottyy/Synatra).
 

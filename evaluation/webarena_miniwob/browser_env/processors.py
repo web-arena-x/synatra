@@ -5,15 +5,14 @@ from typing import Any, TypedDict, Union
 
 import numpy as np
 import numpy.typing as npt
-from gymnasium import spaces
-from playwright.sync_api import CDPSession, Page, ViewportSize
-
 from browser_env.constants import (
     ASCII_CHARSET,
     FREQ_UNICODE_CHARSET,
     IGNORED_ACTREE_PROPERTIES,
     UTTERANCE_MAX_LENGTH,
 )
+from gymnasium import spaces
+from playwright.sync_api import CDPSession, Page, ViewportSize
 
 from .utils import (
     AccessibilityTree,

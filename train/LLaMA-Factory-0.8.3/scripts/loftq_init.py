@@ -23,7 +23,6 @@ import fire
 from peft import LoftQConfig, LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-
 if TYPE_CHECKING:
     from transformers import PreTrainedModel
 
@@ -46,8 +45,12 @@ def quantize_loftq(
     if isinstance(lora_target, str):
         lora_target = [name.strip() for name in lora_target.split(",")]
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True, torch_dtype="auto")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path, trust_remote_code=True
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name_or_path, trust_remote_code=True, torch_dtype="auto"
+    )
 
     loftq_config = LoftQConfig(loftq_bits=loftq_bits, loftq_iter=loftq_iter)
     lora_config = LoraConfig(
@@ -62,13 +65,21 @@ def quantize_loftq(
     )
 
     # Init LoftQ model
-    print("Initializing LoftQ weights, it may be take several minutes, wait patiently.")
+    print(
+        "Initializing LoftQ weights, it may be take several minutes, wait patiently."
+    )
     peft_model = get_peft_model(model, lora_config)
     loftq_dir = os.path.join(output_dir, "loftq_init")
 
     # Save LoftQ model
-    setattr(peft_model.peft_config["default"], "base_model_name_or_path", output_dir)
-    setattr(peft_model.peft_config["default"], "init_lora_weights", True)  # don't apply loftq again
+    setattr(
+        peft_model.peft_config["default"],
+        "base_model_name_or_path",
+        output_dir,
+    )
+    setattr(
+        peft_model.peft_config["default"], "init_lora_weights", True
+    )  # don't apply loftq again
     peft_model.save_pretrained(loftq_dir, safe_serialization=save_safetensors)
     print("Adapter weights saved in {}".format(loftq_dir))
 

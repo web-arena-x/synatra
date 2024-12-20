@@ -26,11 +26,14 @@ from ...model import load_model, load_tokenizer
 from ..trainer_utils import create_modelcard_and_push
 from .trainer import CustomTrainer
 
-
 if TYPE_CHECKING:
     from transformers import Seq2SeqTrainingArguments, TrainerCallback
 
-    from ...hparams import DataArguments, FinetuningArguments, ModelArguments
+    from ...hparams import (
+        DataArguments,
+        FinetuningArguments,
+        ModelArguments,
+    )
 
 
 def run_pt(
@@ -42,9 +45,15 @@ def run_pt(
 ):
     tokenizer_module = load_tokenizer(model_args)
     tokenizer = tokenizer_module["tokenizer"]
-    dataset_module = get_dataset(model_args, data_args, training_args, stage="pt", **tokenizer_module)
-    model = load_model(tokenizer, model_args, finetuning_args, training_args.do_train)
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    dataset_module = get_dataset(
+        model_args, data_args, training_args, stage="pt", **tokenizer_module
+    )
+    model = load_model(
+        tokenizer, model_args, finetuning_args, training_args.do_train
+    )
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer, mlm=False
+    )
 
     # Initialize our Trainer
     trainer = CustomTrainer(
@@ -59,7 +68,9 @@ def run_pt(
 
     # Training
     if training_args.do_train:
-        train_result = trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
+        train_result = trainer.train(
+            resume_from_checkpoint=training_args.resume_from_checkpoint
+        )
         trainer.save_model()
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
@@ -80,4 +91,6 @@ def run_pt(
         trainer.save_metrics("eval", metrics)
 
     # Create model card
-    create_modelcard_and_push(trainer, model_args, data_args, training_args, finetuning_args)
+    create_modelcard_and_push(
+        trainer, model_args, data_args, training_args, finetuning_args
+    )

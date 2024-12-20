@@ -17,9 +17,11 @@ from typing import TYPE_CHECKING, Dict
 import torch
 from transformers.utils import cached_file
 
-from ...extras.constants import V_HEAD_SAFE_WEIGHTS_NAME, V_HEAD_WEIGHTS_NAME
+from ...extras.constants import (
+    V_HEAD_SAFE_WEIGHTS_NAME,
+    V_HEAD_WEIGHTS_NAME,
+)
 from ...extras.logging import get_logger
-
 
 if TYPE_CHECKING:
     from transformers import PreTrainedModel
@@ -30,13 +32,19 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-def load_valuehead_params(path_or_repo_id: str, model_args: "ModelArguments") -> Dict[str, torch.Tensor]:
+def load_valuehead_params(
+    path_or_repo_id: str, model_args: "ModelArguments"
+) -> Dict[str, torch.Tensor]:
     r"""
     Loads value head parameters from Hugging Face Hub or local disk.
 
     Returns: dict with keys `v_head.summary.weight` and `v_head.summary.bias`.
     """
-    kwargs = {"path_or_repo_id": path_or_repo_id, "cache_dir": model_args.cache_dir, "token": model_args.hf_hub_token}
+    kwargs = {
+        "path_or_repo_id": path_or_repo_id,
+        "cache_dir": model_args.cache_dir,
+        "token": model_args.hf_hub_token,
+    }
     err_text = ""
 
     try:
@@ -54,8 +62,14 @@ def load_valuehead_params(path_or_repo_id: str, model_args: "ModelArguments") ->
     except Exception as err:
         err_text = str(err)
 
-    logger.info("Provided path ({}) does not contain value head weights: {}.".format(path_or_repo_id, err_text))
-    logger.info("Ignore the above message if you are not resuming the training of a value head model.")
+    logger.info(
+        "Provided path ({}) does not contain value head weights: {}.".format(
+            path_or_repo_id, err_text
+        )
+    )
+    logger.info(
+        "Ignore the above message if you are not resuming the training of a value head model."
+    )
     return None
 
 

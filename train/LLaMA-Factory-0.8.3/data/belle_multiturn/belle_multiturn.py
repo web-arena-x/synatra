@@ -3,7 +3,6 @@ import os
 
 import datasets
 
-
 _HF_ENDPOINT = os.getenv("HF_ENDPOINT", "https://huggingface.co")
 
 _DESCRIPTION = "BELLE multiturn chat dataset."
@@ -19,7 +18,9 @@ _CITATION = """\
 
 _HOMEPAGE = "{}/datasets/BelleGroup/multiturn_chat_0.8M".format(_HF_ENDPOINT)
 _LICENSE = "gpl-3.0"
-_URL = "{}/datasets/BelleGroup/multiturn_chat_0.8M/resolve/main/multiturn_chat_0.8M.json".format(_HF_ENDPOINT)
+_URL = "{}/datasets/BelleGroup/multiturn_chat_0.8M/resolve/main/multiturn_chat_0.8M.json".format(
+    _HF_ENDPOINT
+)
 
 
 class BelleMultiturn(datasets.GeneratorBasedBuilder):
@@ -27,15 +28,30 @@ class BelleMultiturn(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {"conversations": [{"from": datasets.Value("string"), "value": datasets.Value("string")}]}
+            {
+                "conversations": [
+                    {
+                        "from": datasets.Value("string"),
+                        "value": datasets.Value("string"),
+                    }
+                ]
+            }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
         file_path = dl_manager.download(_URL)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": file_path})]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": file_path}
+            )
+        ]
 
     def _generate_examples(self, filepath: str):
         with open(filepath, "r", encoding="utf-8") as f:
@@ -58,8 +74,12 @@ class BelleMultiturn(datasets.GeneratorBasedBuilder):
                     if human_idx != -1:
                         old_query = prompt[human_idx + 6 : assist_idx].strip()
                         old_resp = prompt[assist_idx + 10 :].strip()
-                        conversations.insert(0, {"from": "gpt", "value": old_resp})
-                        conversations.insert(0, {"from": "human", "value": old_query})
+                        conversations.insert(
+                            0, {"from": "gpt", "value": old_resp}
+                        )
+                        conversations.insert(
+                            0, {"from": "human", "value": old_query}
+                        )
                     else:
                         break
                     prompt = prompt[:human_idx].strip()

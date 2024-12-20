@@ -20,7 +20,6 @@ from ...extras.packages import is_gradio_available
 from ..common import get_model_info, list_checkpoints, save_config
 from ..utils import can_quantize, can_quantize_to
 
-
 if is_gradio_available():
     import gradio as gr
 
@@ -39,27 +38,68 @@ def create_top() -> Dict[str, "Component"]:
 
     with gr.Row():
         finetuning_type = gr.Dropdown(choices=METHODS, value="lora", scale=1)
-        checkpoint_path = gr.Dropdown(multiselect=True, allow_custom_value=True, scale=6)
+        checkpoint_path = gr.Dropdown(
+            multiselect=True, allow_custom_value=True, scale=6
+        )
 
     with gr.Accordion(open=False) as advanced_tab:
         with gr.Row():
-            quantization_bit = gr.Dropdown(choices=["none", "8", "4"], value="none", allow_custom_value=True, scale=1)
-            quantization_method = gr.Dropdown(choices=["bitsandbytes", "hqq", "eetq"], value="bitsandbytes", scale=1)
-            template = gr.Dropdown(choices=list(TEMPLATES.keys()), value="default", scale=1)
-            rope_scaling = gr.Radio(choices=["none", "linear", "dynamic"], value="none", scale=2)
-            booster = gr.Radio(choices=["auto", "flashattn2", "unsloth"], value="auto", scale=2)
+            quantization_bit = gr.Dropdown(
+                choices=["none", "8", "4"],
+                value="none",
+                allow_custom_value=True,
+                scale=1,
+            )
+            quantization_method = gr.Dropdown(
+                choices=["bitsandbytes", "hqq", "eetq"],
+                value="bitsandbytes",
+                scale=1,
+            )
+            template = gr.Dropdown(
+                choices=list(TEMPLATES.keys()), value="default", scale=1
+            )
+            rope_scaling = gr.Radio(
+                choices=["none", "linear", "dynamic"], value="none", scale=2
+            )
+            booster = gr.Radio(
+                choices=["auto", "flashattn2", "unsloth"],
+                value="auto",
+                scale=2,
+            )
             visual_inputs = gr.Checkbox(scale=1)
 
-    model_name.change(get_model_info, [model_name], [model_path, template, visual_inputs], queue=False).then(
-        list_checkpoints, [model_name, finetuning_type], [checkpoint_path], queue=False
+    model_name.change(
+        get_model_info,
+        [model_name],
+        [model_path, template, visual_inputs],
+        queue=False,
+    ).then(
+        list_checkpoints,
+        [model_name, finetuning_type],
+        [checkpoint_path],
+        queue=False,
     )
     model_name.input(save_config, inputs=[lang, model_name], queue=False)
-    model_path.input(save_config, inputs=[lang, model_name, model_path], queue=False)
-    finetuning_type.change(can_quantize, [finetuning_type], [quantization_bit], queue=False).then(
-        list_checkpoints, [model_name, finetuning_type], [checkpoint_path], queue=False
+    model_path.input(
+        save_config, inputs=[lang, model_name, model_path], queue=False
     )
-    checkpoint_path.focus(list_checkpoints, [model_name, finetuning_type], [checkpoint_path], queue=False)
-    quantization_method.change(can_quantize_to, [quantization_method], [quantization_bit], queue=False)
+    finetuning_type.change(
+        can_quantize, [finetuning_type], [quantization_bit], queue=False
+    ).then(
+        list_checkpoints,
+        [model_name, finetuning_type],
+        [checkpoint_path],
+        queue=False,
+    )
+    checkpoint_path.focus(
+        list_checkpoints,
+        [model_name, finetuning_type],
+        [checkpoint_path],
+        queue=False,
+    )
+    quantization_method.change(
+        can_quantize_to, [quantization_method], [quantization_bit], queue=False
+    )
 
     return dict(
         lang=lang,

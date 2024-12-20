@@ -21,7 +21,6 @@ from transformers.integrations import is_deepspeed_zero3_enabled
 
 from ...extras.packages import is_requests_available
 
-
 if is_requests_available():
     import requests
 
@@ -31,7 +30,9 @@ if TYPE_CHECKING:
     from trl import AutoModelForCausalLMWithValueHead
 
 
-def get_rewards_from_server(server_url: str, messages: List[str]) -> List[torch.Tensor]:
+def get_rewards_from_server(
+    server_url: str, messages: List[str]
+) -> List[torch.Tensor]:
     r"""
     Gets reward scores from the API server.
     """
@@ -42,7 +43,10 @@ def get_rewards_from_server(server_url: str, messages: List[str]) -> List[torch.
     return torch.Tensor(rewards)
 
 
-def replace_model(model: "AutoModelForCausalLMWithValueHead", target: Literal["default", "reward"]) -> None:
+def replace_model(
+    model: "AutoModelForCausalLMWithValueHead",
+    target: Literal["default", "reward"],
+) -> None:
     r"""
     Replaces the default/reward modules in the model. The model is already unwrapped.
     """
@@ -51,19 +55,41 @@ def replace_model(model: "AutoModelForCausalLMWithValueHead", target: Literal["d
         import deepspeed  # type: ignore
 
         params = [v_head_layer.weight, v_head_layer.bias]
-        context_maybe_zero3 = deepspeed.zero.GatheredParameters(params, modifier_rank=0)
+        context_maybe_zero3 = deepspeed.zero.GatheredParameters(
+            params, modifier_rank=0
+        )
     else:
         context_maybe_zero3 = nullcontext()
 
-    model.pretrained_model.set_adapter(target)  # set the LoRA adapter to be active
+    model.pretrained_model.set_adapter(
+        target
+    )  # set the LoRA adapter to be active
     with context_maybe_zero3:
         if target == "reward":  # save default head temporarily
-            setattr(model, "default_head_weight", v_head_layer.weight.data.detach().clone())
-            setattr(model, "default_head_bias", v_head_layer.bias.data.detach().clone())
+            setattr(
+                model,
+                "default_head_weight",
+                v_head_layer.weight.data.detach().clone(),
+            )
+            setattr(
+                model,
+                "default_head_bias",
+                v_head_layer.bias.data.detach().clone(),
+            )
 
         device = v_head_layer.weight.device
-        v_head_layer.weight.data = model.get_buffer("{}_head_weight".format(target)).detach().clone().to(device)
-        v_head_layer.bias.data = model.get_buffer("{}_head_bias".format(target)).detach().clone().to(device)
+        v_head_layer.weight.data = (
+            model.get_buffer("{}_head_weight".format(target))
+            .detach()
+            .clone()
+            .to(device)
+        )
+        v_head_layer.bias.data = (
+            model.get_buffer("{}_head_bias".format(target))
+            .detach()
+            .clone()
+            .to(device)
+        )
 
 
 def dump_layernorm(model: "PreTrainedModel") -> Dict[str, torch.Tensor]:
@@ -79,7 +105,10 @@ def dump_layernorm(model: "PreTrainedModel") -> Dict[str, torch.Tensor]:
     return layer_norm_params
 
 
-def restore_layernorm(model: "PreTrainedModel", layernorm_params: Optional[Dict[str, torch.Tensor]] = None) -> None:
+def restore_layernorm(
+    model: "PreTrainedModel",
+    layernorm_params: Optional[Dict[str, torch.Tensor]] = None,
+) -> None:
     r"""
     Restores the layernorm parameters in the model. The model is already unwrapped (and gathered).
     """

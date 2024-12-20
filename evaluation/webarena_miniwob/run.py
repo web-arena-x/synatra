@@ -9,10 +9,8 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from bs4 import BeautifulSoup
 
 import openai
-
 from agent import (
     Agent,
     PromptAgent,
@@ -35,6 +33,7 @@ from browser_env.helper_functions import (
     get_action_description,
 )
 from browser_env.utils import DetachedPage
+from bs4 import BeautifulSoup
 from evaluation_harness import evaluator_router
 
 LOG_FOLDER = "log_files"
@@ -171,21 +170,30 @@ def config() -> argparse.Namespace:
 
     return args
 
+
 def is_reward_empty(page):
-    found = page.locator("xpath=//label[text()='Last reward:']/following-sibling::span[@id='reward-last' and text()='-' ]").count() > 0
+    found = (
+        page.locator(
+            "xpath=//label[text()='Last reward:']/following-sibling::span[@id='reward-last' and text()='-' ]"
+        ).count()
+        > 0
+    )
     val = None
     if found:
-        print("The <span id='reward-last'>-</span> is immediately after <label>Last reward:</label>")
+        print(
+            "The <span id='reward-last'>-</span> is immediately after <label>Last reward:</label>"
+        )
     else:
         print("The specific sequence is NOT found.")
         val = page.inner_text("#reward-last")
     return found, val
 
+
 def process_intent(dom_str):
-	soup = BeautifulSoup(dom_str, "html.parser")
-	for data in soup(['style', 'script']):
-		data.decompose()
-	return ' '.join(soup.stripped_strings)
+    soup = BeautifulSoup(dom_str, "html.parser")
+    for data in soup(["style", "script"]):
+        data.decompose()
+    return " ".join(soup.stripped_strings)
 
 
 def early_stop(
@@ -248,17 +256,20 @@ def early_stop(
 
     return False, ""
 
+
 def enter_start(env):
     env.page.click("#sync-task-cover")
     env.page.wait_for_timeout(1000)
-    
+
     env.page.client = env.page.context.new_cdp_session(env.page)
+
 
 def extract_intent(env):
     intent = env.page.inner_html("#query")
     intent = process_intent(intent)
     logger.info(f"[Intent]: {intent}")
     return intent
+
 
 def test(
     args: argparse.Namespace,
@@ -383,7 +394,7 @@ def test(
                     # add a action place holder
                     trajectory.append(create_stop_action(""))
                     break
-            
+
             if not args.test_miniwob:
                 evaluator = evaluator_router(config_file)
                 score = evaluator(
@@ -406,8 +417,12 @@ def test(
                     )
             else:
                 score = 0.0
-                if 'Get a numeric reward ' in stop_info:
-                    score = float(stop_info.lstrip('Get a numeric reward ').rstrip(', test ends'))
+                if "Get a numeric reward " in stop_info:
+                    score = float(
+                        stop_info.lstrip("Get a numeric reward ").rstrip(
+                            ", test ends"
+                        )
+                    )
                     scores.append(score)
                 if score >= args.miniwob_success_treshold:
                     logger.info(f"[Result] (PASS) {config_file}")
@@ -491,7 +506,9 @@ if __name__ == "__main__":
     st_idx = args.test_start_idx
     ed_idx = args.test_end_idx
     if args.test_miniwob:
-        assert (st_idx >= 812 and ed_idx <= 941), ("MiniWoB config files are indexed from 812 to 941 inclusive")
+        assert (
+            st_idx >= 812 and ed_idx <= 941
+        ), "MiniWoB config files are indexed from 812 to 941 inclusive"
     for i in range(st_idx, ed_idx):
         test_file_list.append(f"config_files/{i}.json")
     if "debug" not in args.result_dir:

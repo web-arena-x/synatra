@@ -4,7 +4,6 @@ from typing import List
 
 import datasets
 
-
 _HF_ENDPOINT = os.getenv("HF_ENDPOINT", "https://huggingface.co")
 _DESCRIPTION = "Human preference data about helpfulness and harmlessness."
 _CITATION = ""
@@ -36,18 +35,30 @@ class HhRlhfEn(datasets.GeneratorBasedBuilder):
                 "instruction": datasets.Value("string"),
                 "chosen": datasets.Value("string"),
                 "rejected": datasets.Value("string"),
-                "history": datasets.Sequence(datasets.Sequence(datasets.Value("string"))),
+                "history": datasets.Sequence(
+                    datasets.Sequence(datasets.Value("string"))
+                ),
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
         file_path = dl_manager.download_and_extract(_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": file_path["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": file_path["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepaths": file_path["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepaths": file_path["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepaths: List[str]):
@@ -73,12 +84,19 @@ class HhRlhfEn(datasets.GeneratorBasedBuilder):
                         assist_idx = prompt.rfind("\n\nAssistant: ")
                         human_idx = prompt.rfind("\n\nHuman: ")
                         if human_idx != -1:
-                            old_query = prompt[human_idx + 9 : assist_idx].strip()
+                            old_query = prompt[
+                                human_idx + 9 : assist_idx
+                            ].strip()
                             old_resp = prompt[assist_idx + 13 :].strip()
                             history.insert(0, (old_query, old_resp))
                         else:
                             break
                         prompt = prompt[:human_idx]
 
-                    yield key, {"instruction": query, "chosen": r_accept, "rejected": r_reject, "history": history}
+                    yield key, {
+                        "instruction": query,
+                        "chosen": r_accept,
+                        "rejected": r_reject,
+                        "history": history,
+                    }
                     key += 1

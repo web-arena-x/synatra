@@ -14,7 +14,12 @@
 
 import json
 
-from llamafactory.data.formatter import EmptyFormatter, FunctionFormatter, StringFormatter, ToolFormatter
+from llamafactory.data.formatter import (
+    EmptyFormatter,
+    FunctionFormatter,
+    StringFormatter,
+    ToolFormatter,
+)
 
 
 def test_empty_formatter():
@@ -23,13 +28,17 @@ def test_empty_formatter():
 
 
 def test_string_formatter():
-    formatter = StringFormatter(slots=["<s>", "Human: {{content}}\nAssistant:"])
+    formatter = StringFormatter(
+        slots=["<s>", "Human: {{content}}\nAssistant:"]
+    )
     assert formatter.apply(content="Hi") == ["<s>", "Human: Hi\nAssistant:"]
 
 
 def test_function_formatter():
     formatter = FunctionFormatter(slots=[], tool_format="default")
-    tool_calls = json.dumps({"name": "tool_name", "arguments": {"foo": "bar", "size": 10}})
+    tool_calls = json.dumps(
+        {"name": "tool_name", "arguments": {"foo": "bar", "size": 10}}
+    )
     assert formatter.apply(content=tool_calls) == [
         """Action: tool_name\nAction Input: {\"foo\": \"bar\", \"size\": 10}\n"""
     ]
@@ -37,7 +46,9 @@ def test_function_formatter():
 
 def test_multi_function_formatter():
     formatter = FunctionFormatter(slots=[], tool_format="default")
-    tool_calls = json.dumps([{"name": "tool_name", "arguments": {"foo": "bar", "size": 10}}] * 2)
+    tool_calls = json.dumps(
+        [{"name": "tool_name", "arguments": {"foo": "bar", "size": 10}}] * 2
+    )
     assert formatter.apply(content=tool_calls) == [
         """Action: tool_name\nAction Input: {\"foo\": \"bar\", \"size\": 10}\n""",
         """Action: tool_name\nAction Input: {\"foo\": \"bar\", \"size\": 10}\n""",
@@ -78,8 +89,12 @@ def test_default_tool_formatter():
 
 def test_default_tool_extractor():
     formatter = ToolFormatter(tool_format="default")
-    result = """Action: test_tool\nAction Input: {"foo": "bar", "size": 10}\n"""
-    assert formatter.extract(result) == [("test_tool", """{"foo": "bar", "size": 10}""")]
+    result = (
+        """Action: test_tool\nAction Input: {"foo": "bar", "size": 10}\n"""
+    )
+    assert formatter.extract(result) == [
+        ("test_tool", """{"foo": "bar", "size": 10}""")
+    ]
 
 
 def test_default_multi_tool_extractor():
@@ -113,11 +128,15 @@ def test_glm4_tool_formatter():
     assert formatter.apply(content=json.dumps(tools)) == [
         "你是一个名为 ChatGLM 的人工智能助手。你是基于智谱AI训练的语言模型 GLM-4 模型开发的，"
         "你的任务是针对用户的问题和要求提供适当的答复和支持。# 可用工具\n\n"
-        "## test_tool\n\n{}\n在调用上述函数时，请使用 Json 格式表示调用的参数。".format(json.dumps(tools[0], indent=4))
+        "## test_tool\n\n{}\n在调用上述函数时，请使用 Json 格式表示调用的参数。".format(
+            json.dumps(tools[0], indent=4)
+        )
     ]
 
 
 def test_glm4_tool_extractor():
     formatter = ToolFormatter(tool_format="glm4")
     result = """test_tool\n{"foo": "bar", "size": 10}\n"""
-    assert formatter.extract(result) == [("test_tool", """{"foo": "bar", "size": 10}""")]
+    assert formatter.extract(result) == [
+        ("test_tool", """{"foo": "bar", "size": 10}""")
+    ]

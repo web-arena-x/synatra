@@ -4,8 +4,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
-from playwright.sync_api import CDPSession, Page
-
 from browser_env.env_config import (
     ACCOUNTS,
     GITLAB,
@@ -18,6 +16,7 @@ from browser_env.env_config import (
 from llms.providers.openai_utils import (
     generate_from_openai_chat_completion,
 )
+from playwright.sync_api import CDPSession, Page
 
 
 def shopping_get_auth_token() -> str:

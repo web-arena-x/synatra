@@ -3,9 +3,8 @@ import json
 from typing import Any
 
 import tiktoken
-from beartype import beartype
-
 from agent.prompts import *
+from beartype import beartype
 from browser_env import Trajectory
 from browser_env.actions import (
     Action,

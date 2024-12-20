@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Tuple, Union
 
 from .data_utils import SLOTS
 
-
 DEFAULT_TOOL_PROMPT = (
     "You have access to the following tools:\n{tool_text}"
     "Use the following format if using a tool:\n"
@@ -42,15 +41,18 @@ GLM4_TOOL_PROMPT = (
 class ToolUtils(ABC):
     @staticmethod
     @abstractmethod
-    def get_function_slots() -> SLOTS: ...
+    def get_function_slots() -> SLOTS:
+        ...
 
     @staticmethod
     @abstractmethod
-    def tool_formatter(tools: List[Dict[str, Any]]) -> str: ...
+    def tool_formatter(tools: List[Dict[str, Any]]) -> str:
+        ...
 
     @staticmethod
     @abstractmethod
-    def tool_extractor(content: str) -> Union[str, List[Tuple[str, str]]]: ...
+    def tool_extractor(content: str) -> Union[str, List[Tuple[str, str]]]:
+        ...
 
 
 class DefaultToolUtils(ToolUtils):
@@ -70,10 +72,14 @@ class DefaultToolUtils(ToolUtils):
                     required = ", required"
 
                 if param.get("enum", None):
-                    enum = ", should be one of [{}]".format(", ".join(param["enum"]))
+                    enum = ", should be one of [{}]".format(
+                        ", ".join(param["enum"])
+                    )
 
                 if param.get("items", None):
-                    items = ", where each item should be {}".format(param["items"].get("type", ""))
+                    items = ", where each item should be {}".format(
+                        param["items"].get("type", "")
+                    )
 
                 param_text += "  - {name} ({type}{required}): {desc}{enum}{items}\n".format(
                     name=name,
@@ -85,15 +91,22 @@ class DefaultToolUtils(ToolUtils):
                 )
 
             tool_text += "> Tool Name: {name}\nTool Description: {desc}\nTool Args:\n{args}\n".format(
-                name=tool["name"], desc=tool.get("description", ""), args=param_text
+                name=tool["name"],
+                desc=tool.get("description", ""),
+                args=param_text,
             )
             tool_names.append(tool["name"])
 
-        return DEFAULT_TOOL_PROMPT.format(tool_text=tool_text, tool_names=", ".join(tool_names))
+        return DEFAULT_TOOL_PROMPT.format(
+            tool_text=tool_text, tool_names=", ".join(tool_names)
+        )
 
     @staticmethod
     def tool_extractor(content: str) -> Union[str, List[Tuple[str, str]]]:
-        regex = re.compile(r"Action:\s*([a-zA-Z0-9_]+)\s*Action Input:\s*(.+?)(?=\s*Action:|\s*$)", re.DOTALL)
+        regex = re.compile(
+            r"Action:\s*([a-zA-Z0-9_]+)\s*Action Input:\s*(.+?)(?=\s*Action:|\s*$)",
+            re.DOTALL,
+        )
         action_match: List[Tuple[str, str]] = re.findall(regex, content)
         if not action_match:
             return content
@@ -104,7 +117,9 @@ class DefaultToolUtils(ToolUtils):
             tool_input = match[1].strip().strip('"').strip("```")
             try:
                 arguments = json.loads(tool_input)
-                results.append((tool_name, json.dumps(arguments, ensure_ascii=False)))
+                results.append(
+                    (tool_name, json.dumps(arguments, ensure_ascii=False))
+                )
             except json.JSONDecodeError:
                 return content
 
@@ -120,8 +135,11 @@ class GLM4ToolUtils(ToolUtils):
     def tool_formatter(tools: List[Dict[str, Any]]) -> str:
         tool_text = ""
         for tool in tools:
-            tool_text += "\n\n## {name}\n\n{body}\n在调用上述函数时，请使用 Json 格式表示调用的参数。".format(
-                name=tool["name"], body=json.dumps(tool, indent=4, ensure_ascii=False)
+            tool_text += (
+                "\n\n## {name}\n\n{body}\n在调用上述函数时，请使用 Json 格式表示调用的参数。".format(
+                    name=tool["name"],
+                    body=json.dumps(tool, indent=4, ensure_ascii=False),
+                )
             )
 
         return GLM4_TOOL_PROMPT.format(tool_text=tool_text)

@@ -21,7 +21,10 @@ from typing import TYPE_CHECKING, Tuple, Union
 
 import torch
 import transformers.dynamic_module_utils
-from transformers import InfNanRemoveLogitsProcessor, LogitsProcessorList
+from transformers import (
+    InfNanRemoveLogitsProcessor,
+    LogitsProcessorList,
+)
 from transformers.dynamic_module_utils import get_relative_imports
 from transformers.utils import (
     is_torch_bf16_gpu_available,
@@ -33,7 +36,6 @@ from transformers.utils import (
 from transformers.utils.versions import require_version
 
 from .logging import get_logger
-
 
 _is_fp16_available = is_torch_npu_available() or is_torch_cuda_available()
 try:
@@ -77,11 +79,19 @@ def check_dependencies() -> None:
     Checks the version of the required packages.
     """
     if os.environ.get("DISABLE_VERSION_CHECK", "0").lower() in ["true", "1"]:
-        logger.warning("Version checking has been disabled, may lead to unexpected behaviors.")
+        logger.warning(
+            "Version checking has been disabled, may lead to unexpected behaviors."
+        )
     else:
-        require_version("transformers>=4.41.2", "To fix: pip install transformers>=4.41.2")
-        require_version("datasets>=2.16.0", "To fix: pip install datasets>=2.16.0")
-        require_version("accelerate>=0.30.1", "To fix: pip install accelerate>=0.30.1")
+        require_version(
+            "transformers>=4.41.2", "To fix: pip install transformers>=4.41.2"
+        )
+        require_version(
+            "datasets>=2.16.0", "To fix: pip install datasets>=2.16.0"
+        )
+        require_version(
+            "accelerate>=0.30.1", "To fix: pip install accelerate>=0.30.1"
+        )
         require_version("peft>=0.11.1", "To fix: pip install peft>=0.11.1")
         require_version("trl>=0.8.6", "To fix: pip install trl>=0.8.6")
 
@@ -99,7 +109,9 @@ def count_parameters(model: "torch.nn.Module") -> Tuple[int, int]:
 
         # Due to the design of 4bit linear layers from bitsandbytes, multiply the number of parameters by itemsize
         if param.__class__.__name__ == "Params4bit":
-            if hasattr(param, "quant_storage") and hasattr(param.quant_storage, "itemsize"):
+            if hasattr(param, "quant_storage") and hasattr(
+                param.quant_storage, "itemsize"
+            ):
                 num_bytes = param.quant_storage.itemsize
             elif hasattr(param, "element_size"):  # for older pytorch version
                 num_bytes = param.element_size()
@@ -183,7 +195,9 @@ def is_gpu_or_npu_available() -> bool:
 def numpify(inputs: Union["NDArray", "torch.Tensor"]) -> "NDArray":
     if isinstance(inputs, torch.Tensor):
         inputs = inputs.cpu()
-        if inputs.dtype == torch.bfloat16:  # numpy does not support bfloat16 until 1.21.4
+        if (
+            inputs.dtype == torch.bfloat16
+        ):  # numpy does not support bfloat16 until 1.21.4
             inputs = inputs.to(torch.float32)
 
         inputs = inputs.numpy()
@@ -218,10 +232,20 @@ def try_download_model_from_ms(model_args: "ModelArguments") -> str:
     try:
         from modelscope import snapshot_download
 
-        revision = "master" if model_args.model_revision == "main" else model_args.model_revision
-        return snapshot_download(model_args.model_name_or_path, revision=revision, cache_dir=model_args.cache_dir)
+        revision = (
+            "master"
+            if model_args.model_revision == "main"
+            else model_args.model_revision
+        )
+        return snapshot_download(
+            model_args.model_name_or_path,
+            revision=revision,
+            cache_dir=model_args.cache_dir,
+        )
     except ImportError:
-        raise ImportError("Please install modelscope via `pip install modelscope -U`")
+        raise ImportError(
+            "Please install modelscope via `pip install modelscope -U`"
+        )
 
 
 def use_modelscope() -> bool:

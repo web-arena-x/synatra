@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING
 
 from packaging import version
 
-
 if TYPE_CHECKING:
     from packaging.version import Version
 

@@ -17,11 +17,9 @@ import random
 
 import pytest
 from datasets import load_dataset
-from transformers import AutoTokenizer
-
 from llamafactory.extras.constants import IGNORE_INDEX
 from llamafactory.train.test_utils import load_train_dataset
-
+from transformers import AutoTokenizer
 
 DEMO_DATA = os.environ.get("DEMO_DATA", "llamafactory/demo_data")
 
@@ -52,8 +50,14 @@ def test_feedback_data(num_samples: int):
     for index in indexes:
         messages = original_data["messages"][index]
         ref_input_ids = ref_tokenizer.apply_chat_template(messages)
-        prompt_len = len(ref_tokenizer.apply_chat_template(messages[:-1], add_generation_prompt=True))
+        prompt_len = len(
+            ref_tokenizer.apply_chat_template(
+                messages[:-1], add_generation_prompt=True
+            )
+        )
         ref_labels = [IGNORE_INDEX] * prompt_len + ref_input_ids[prompt_len:]
         assert train_dataset["input_ids"][index] == ref_input_ids
         assert train_dataset["labels"][index] == ref_labels
-        assert train_dataset["kto_tags"][index] == original_data["label"][index]
+        assert (
+            train_dataset["kto_tags"][index] == original_data["label"][index]
+        )

@@ -23,8 +23,10 @@ import peft
 import torch
 import transformers
 import trl
-from transformers.utils import is_torch_cuda_available, is_torch_npu_available
-
+from transformers.utils import (
+    is_torch_cuda_available,
+    is_torch_npu_available,
+)
 
 VERSION = "0.8.3"
 
@@ -72,4 +74,10 @@ def print_env() -> None:
     except Exception:
         pass
 
-    print("\n" + "\n".join(["- {}: {}".format(key, value) for key, value in info.items()]) + "\n")
+    print(
+        "\n"
+        + "\n".join(
+            ["- {}: {}".format(key, value) for key, value in info.items()]
+        )
+        + "\n"
+    )

@@ -34,7 +34,6 @@ from transformers.modeling_utils import (
     shard_checkpoint,
 )
 
-
 if TYPE_CHECKING:
     from transformers import PretrainedConfig, PreTrainedModel
 
@@ -62,9 +61,13 @@ def block_expansion(
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
     tokenizer.save_pretrained(output_dir)
 
-    config: "PretrainedConfig" = AutoConfig.from_pretrained(model_name_or_path)  # load the original one
+    config: "PretrainedConfig" = AutoConfig.from_pretrained(
+        model_name_or_path
+    )  # load the original one
     if save_safetensors:
-        setattr(config, "tie_word_embeddings", False)  # safetensors does not allow shared weights
+        setattr(
+            config, "tie_word_embeddings", False
+        )  # safetensors does not allow shared weights
 
     model: "PreTrainedModel" = AutoModelForCausalLM.from_pretrained(
         model_name_or_path,
@@ -76,7 +79,11 @@ def block_expansion(
     state_dict = model.state_dict()
 
     if num_layers % num_expand != 0:
-        raise ValueError("`num_layers` {} should be divisible by `num_expand` {}.".format(num_layers, num_expand))
+        raise ValueError(
+            "`num_layers` {} should be divisible by `num_expand` {}.".format(
+                num_layers, num_expand
+            )
+        )
 
     split = num_layers // num_expand
     layer_cnt = 0
@@ -92,9 +99,13 @@ def block_expansion(
             for key, value in state_dict.items():
                 if ".{:d}.".format(i) in key:
                     if "down_proj" in key or "o_proj" in key:
-                        output_state_dict[change_name(key, i, layer_cnt)] = torch.zeros_like(value)
+                        output_state_dict[
+                            change_name(key, i, layer_cnt)
+                        ] = torch.zeros_like(value)
                     else:
-                        output_state_dict[change_name(key, i, layer_cnt)] = torch.clone(value)
+                        output_state_dict[
+                            change_name(key, i, layer_cnt)
+                        ] = torch.clone(value)
 
             print("Add layer {} expanded from layer {}".format(layer_cnt, i))
             layer_cnt += 1
@@ -104,19 +115,33 @@ def block_expansion(
             output_state_dict[key] = value
 
     weights_name = SAFE_WEIGHTS_NAME if save_safetensors else WEIGHTS_NAME
-    shards, index = shard_checkpoint(output_state_dict, max_shard_size=shard_size, weights_name=weights_name)
+    shards, index = shard_checkpoint(
+        output_state_dict, max_shard_size=shard_size, weights_name=weights_name
+    )
 
     for shard_file, shard in tqdm(shards.items(), desc="Save weights"):
         if save_safetensors:
-            save_file(shard, os.path.join(output_dir, shard_file), metadata={"format": "pt"})
+            save_file(
+                shard,
+                os.path.join(output_dir, shard_file),
+                metadata={"format": "pt"},
+            )
         else:
             torch.save(shard, os.path.join(output_dir, shard_file))
 
     if index is None:
-        print("Model weights saved in {}".format(os.path.join(output_dir, weights_name)))
+        print(
+            "Model weights saved in {}".format(
+                os.path.join(output_dir, weights_name)
+            )
+        )
     else:
-        index_name = SAFE_WEIGHTS_INDEX_NAME if save_safetensors else WEIGHTS_INDEX_NAME
-        with open(os.path.join(output_dir, index_name), "w", encoding="utf-8") as f:
+        index_name = (
+            SAFE_WEIGHTS_INDEX_NAME if save_safetensors else WEIGHTS_INDEX_NAME
+        )
+        with open(
+            os.path.join(output_dir, index_name), "w", encoding="utf-8"
+        ) as f:
             json.dump(index, f, indent=2, sort_keys=True)
         print("Model weights saved in {}".format(output_dir))
 

@@ -7,8 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from itertools import combinations
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
-
 from browser_env.env_config import (
     ACCOUNTS,
     GITLAB,
@@ -16,6 +14,7 @@ from browser_env.env_config import (
     SHOPPING,
     SHOPPING_ADMIN,
 )
+from playwright.sync_api import sync_playwright
 
 HEADLESS = True
 SLOW_MO = 0

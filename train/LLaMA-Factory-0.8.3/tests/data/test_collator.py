@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import torch
-
 from llamafactory.data.collator import prepare_4d_attention_mask
 
 
@@ -26,7 +25,9 @@ def test_4d_attention_mask():
             [1, 2, 2, 3, 3, 3],
         ]
     )
-    attention_mask_computed = prepare_4d_attention_mask(attention_mask_with_indices, torch.float16)
+    attention_mask_computed = prepare_4d_attention_mask(
+        attention_mask_with_indices, torch.float16
+    )
     attention_mask_expected = torch.tensor(
         [
             [

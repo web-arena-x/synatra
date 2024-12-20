@@ -15,9 +15,10 @@
 import os
 
 import torch
-
-from llamafactory.train.test_utils import load_infer_model, load_train_model
-
+from llamafactory.train.test_utils import (
+    load_infer_model,
+    load_train_model,
+)
 
 TINY_LLAMA = os.environ.get("TINY_LLAMA", "llamafactory/tiny-random-Llama-3")
 

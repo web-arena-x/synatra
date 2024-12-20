@@ -1,9 +1,8 @@
 from typing import Dict, Generator, Optional, Tuple, Type, Union, cast
 
 import pytest
-from playwright.sync_api import Page
-
 from browser_env import ScriptBrowserEnv, create_playwright_action
+from playwright.sync_api import Page
 
 HEADLESS = True
 SLOW_MO = 0

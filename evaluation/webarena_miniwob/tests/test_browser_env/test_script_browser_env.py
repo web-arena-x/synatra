@@ -5,9 +5,6 @@ import tempfile
 from typing import Callable, Dict, Optional, Tuple, Type, Union, cast
 
 import pytest
-from gymnasium.vector import AsyncVectorEnv
-from playwright.sync_api import Page
-
 from browser_env import (
     Action,
     AsyncScriptBrowserEnv,
@@ -27,6 +24,8 @@ from browser_env.env_config import (
     SHOPPING,
     SHOPPING_ADMIN,
 )
+from gymnasium.vector import AsyncVectorEnv
+from playwright.sync_api import Page
 
 
 def test_script_browser_env(script_browser_env: ScriptBrowserEnv) -> None:

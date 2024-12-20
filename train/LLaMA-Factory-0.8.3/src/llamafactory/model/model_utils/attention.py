@@ -14,11 +14,13 @@
 
 from typing import TYPE_CHECKING
 
-from transformers.utils import is_flash_attn_2_available, is_torch_sdpa_available
+from transformers.utils import (
+    is_flash_attn_2_available,
+    is_torch_sdpa_available,
+)
 from transformers.utils.versions import require_version
 
 from ...extras.logging import get_logger
-
 
 if TYPE_CHECKING:
     from transformers import PretrainedConfig
@@ -30,20 +32,34 @@ logger = get_logger(__name__)
 
 
 def configure_attn_implementation(
-    config: "PretrainedConfig", model_args: "ModelArguments", is_trainable: bool
+    config: "PretrainedConfig",
+    model_args: "ModelArguments",
+    is_trainable: bool,
 ) -> None:
     if getattr(config, "model_type", None) == "gemma2" and is_trainable:
         if model_args.flash_attn == "auto" or model_args.flash_attn == "fa2":
             if is_flash_attn_2_available():
-                require_version("transformers>=4.42.4", "To fix: pip install transformers>=4.42.4")
-                require_version("flash_attn>=2.6.0", "To fix: pip install flash_attn>=2.6.0")
-                logger.warning("Gemma-2 should use flash attention 2, change `flash_attn` to fa2.")
+                require_version(
+                    "transformers>=4.42.4",
+                    "To fix: pip install transformers>=4.42.4",
+                )
+                require_version(
+                    "flash_attn>=2.6.0",
+                    "To fix: pip install flash_attn>=2.6.0",
+                )
+                logger.warning(
+                    "Gemma-2 should use flash attention 2, change `flash_attn` to fa2."
+                )
                 model_args.flash_attn = "fa2"
             else:
-                logger.warning("Gemma-2 should use eager attention, change `flash_attn` to disabled.")
+                logger.warning(
+                    "Gemma-2 should use eager attention, change `flash_attn` to disabled."
+                )
                 model_args.flash_attn = "disabled"
         elif model_args.flash_attn == "sdpa":
-            logger.warning("Gemma-2 should use soft-capping attention, while the SDPA attention does not support it.")
+            logger.warning(
+                "Gemma-2 should use soft-capping attention, while the SDPA attention does not support it."
+            )
 
     if model_args.flash_attn == "auto":
         return
@@ -64,22 +80,30 @@ def configure_attn_implementation(
 
         requested_attn_implementation = "flash_attention_2"
     else:
-        raise NotImplementedError("Unknown attention type: {}".format(model_args.flash_attn))
+        raise NotImplementedError(
+            "Unknown attention type: {}".format(model_args.flash_attn)
+        )
 
-    if getattr(config, "model_type", None) == "internlm2":  # special case for custom models
+    if (
+        getattr(config, "model_type", None) == "internlm2"
+    ):  # special case for custom models
         setattr(config, "attn_implementation", requested_attn_implementation)
     else:
         setattr(config, "_attn_implementation", requested_attn_implementation)
 
 
 def print_attn_implementation(config: "PretrainedConfig") -> None:
-    if getattr(config, "model_type", None) == "internlm2":  # special case for custom models
+    if (
+        getattr(config, "model_type", None) == "internlm2"
+    ):  # special case for custom models
         attn_implementation = getattr(config, "attn_implementation", None)
     else:
         attn_implementation = getattr(config, "_attn_implementation", None)
 
     if attn_implementation == "flash_attention_2":
-        logger.info("Using FlashAttention-2 for faster training and inference.")
+        logger.info(
+            "Using FlashAttention-2 for faster training and inference."
+        )
     elif attn_implementation == "sdpa":
         logger.info("Using torch SDPA for faster training and inference.")
     else:

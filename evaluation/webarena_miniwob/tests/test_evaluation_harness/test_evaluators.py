@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from py import test
-
 from agent import Agent, TeacherForcingAgent
 from browser_env import ActionTypes, ScriptBrowserEnv
 from browser_env.env_config import *
@@ -17,6 +15,7 @@ from evaluation_harness import (
     URLEvaluator,
 )
 from evaluation_harness.evaluators import EvaluatorComb
+from py import test
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 HEADLESS = True

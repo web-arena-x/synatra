@@ -28,8 +28,11 @@ from trl.trainer import disable_dropout_in_model
 
 from ...extras.constants import IGNORE_INDEX
 from ..callbacks import SaveProcessorCallback
-from ..trainer_utils import create_custom_optimzer, create_custom_scheduler, get_batch_logps
-
+from ..trainer_utils import (
+    create_custom_optimzer,
+    create_custom_scheduler,
+    get_batch_logps,
+)
 
 if TYPE_CHECKING:
     import torch.utils.data
@@ -83,11 +86,14 @@ class CustomKTOTrainer(KTOTrainer):
         if ref_model is not None:
             if self.is_deepspeed_enabled:
                 if not (
-                    getattr(ref_model, "is_loaded_in_8bit", False) or getattr(ref_model, "is_loaded_in_4bit", False)
+                    getattr(ref_model, "is_loaded_in_8bit", False)
+                    or getattr(ref_model, "is_loaded_in_4bit", False)
                 ):  # quantized models are already set on the correct device
                     self.ref_model = self._prepare_deepspeed(self.ref_model)
             else:
-                self.ref_model = self.accelerator.prepare_model(self.ref_model, evaluation_mode=True)
+                self.ref_model = self.accelerator.prepare_model(
+                    self.ref_model, evaluation_mode=True
+                )
                 self.ref_model.eval()
 
         if processor is not None:
@@ -96,16 +102,22 @@ class CustomKTOTrainer(KTOTrainer):
         if finetuning_args.use_badam:
             from badam import BAdamCallback, clip_grad_norm_old_version
 
-            self.accelerator.clip_grad_norm_ = MethodType(clip_grad_norm_old_version, self.accelerator)
+            self.accelerator.clip_grad_norm_ = MethodType(
+                clip_grad_norm_old_version, self.accelerator
+            )
             self.add_callback(BAdamCallback)
 
     def create_optimizer(self) -> "torch.optim.Optimizer":
         if self.optimizer is None:
-            self.optimizer = create_custom_optimzer(self.model, self.args, self.finetuning_args)
+            self.optimizer = create_custom_optimzer(
+                self.model, self.args, self.finetuning_args
+            )
         return super().create_optimizer()
 
     def create_scheduler(
-        self, num_training_steps: int, optimizer: Optional["torch.optim.Optimizer"] = None
+        self,
+        num_training_steps: int,
+        optimizer: Optional["torch.optim.Optimizer"] = None,
     ) -> "torch.optim.lr_scheduler.LRScheduler":
         create_custom_scheduler(self.args, num_training_steps, optimizer)
         return super().create_scheduler(num_training_steps, optimizer)
@@ -117,12 +129,17 @@ class CustomKTOTrainer(KTOTrainer):
         return Trainer._get_train_sampler(self)
 
     def forward(
-        self, model: "PreTrainedModel", batch: Dict[str, "torch.Tensor"], prefix: Literal["", "kl_"] = ""
+        self,
+        model: "PreTrainedModel",
+        batch: Dict[str, "torch.Tensor"],
+        prefix: Literal["", "kl_"] = "",
     ) -> Tuple["torch.Tensor", "torch.Tensor"]:
         r"""
         Runs forward pass and computes the log probabilities.
         """
-        batch = {k: v.detach().clone() for k, v in batch.items()}  # avoid error
+        batch = {
+            k: v.detach().clone() for k, v in batch.items()
+        }  # avoid error
         model_inputs = {
             "input_ids": batch["{}input_ids".format(prefix)],
             "attention_mask": batch["{}attention_mask".format(prefix)],
@@ -131,11 +148,17 @@ class CustomKTOTrainer(KTOTrainer):
             model_inputs["pixel_values"] = batch["pixel_values"]
 
         if "{}token_type_ids".format(prefix) in batch:
-            model_inputs["token_type_ids"] = batch["{}token_type_ids".format(prefix)]
+            model_inputs["token_type_ids"] = batch[
+                "{}token_type_ids".format(prefix)
+            ]
 
-        logits = model(**model_inputs, return_dict=True, use_cache=False).logits.to(torch.float32)
+        logits = model(
+            **model_inputs, return_dict=True, use_cache=False
+        ).logits.to(torch.float32)
 
-        logps, valid_length = get_batch_logps(logits=logits, labels=batch["{}labels".format(prefix)])
+        logps, valid_length = get_batch_logps(
+            logits=logits, labels=batch["{}labels".format(prefix)]
+        )
         return logps, logps / valid_length
 
     def concatenated_forward(
@@ -161,17 +184,26 @@ class CustomKTOTrainer(KTOTrainer):
         """
         if self.ref_model is None:
             ref_model = model
-            ref_context = self.accelerator.unwrap_model(model).disable_adapter()
+            ref_context = self.accelerator.unwrap_model(
+                model
+            ).disable_adapter()
         else:
             ref_model = self.ref_model
             ref_context = nullcontext()
 
         with torch.no_grad(), ref_context:
-            reference_chosen_logps, reference_rejected_logps, reference_kl_logps, _ = self.concatenated_forward(
-                ref_model, batch
-            )
+            (
+                reference_chosen_logps,
+                reference_rejected_logps,
+                reference_kl_logps,
+                _,
+            ) = self.concatenated_forward(ref_model, batch)
 
-        return reference_chosen_logps, reference_rejected_logps, reference_kl_logps
+        return (
+            reference_chosen_logps,
+            reference_rejected_logps,
+            reference_kl_logps,
+        )
 
     def get_batch_loss_metrics(
         self,
@@ -182,12 +214,17 @@ class CustomKTOTrainer(KTOTrainer):
         Computes the DPO loss and other metrics for the given batch of inputs for train or test.
         """
         metrics = {}
-        policy_chosen_logps, policy_rejected_logps, policy_kl_logps, policy_chosen_logps_avg = (
-            self.concatenated_forward(model, batch)
-        )
-        reference_chosen_logps, reference_rejected_logps, reference_kl_logps = self.compute_reference_log_probs(
-            model, batch
-        )
+        (
+            policy_chosen_logps,
+            policy_rejected_logps,
+            policy_kl_logps,
+            policy_chosen_logps_avg,
+        ) = self.concatenated_forward(model, batch)
+        (
+            reference_chosen_logps,
+            reference_rejected_logps,
+            reference_kl_logps,
+        ) = self.compute_reference_log_probs(model, batch)
         losses, chosen_rewards, rejected_rewards, kl = self.kto_loss(
             policy_chosen_logps,
             policy_rejected_logps,
@@ -198,24 +235,51 @@ class CustomKTOTrainer(KTOTrainer):
         )
         losses = losses.nanmean()
 
-        if self.ftx_gamma > 1e-6 and len(policy_chosen_logps) > 0:  # remember to rescale
+        if (
+            self.ftx_gamma > 1e-6 and len(policy_chosen_logps) > 0
+        ):  # remember to rescale
             sft_loss = -policy_chosen_logps_avg
-            losses += self.ftx_gamma * sft_loss.nanmean() / len(policy_chosen_logps) * len(batch["labels"])
+            losses += (
+                self.ftx_gamma
+                * sft_loss.nanmean()
+                / len(policy_chosen_logps)
+                * len(batch["labels"])
+            )
 
-        num_chosen = torch.Tensor([len(chosen_rewards)]).to(self.accelerator.device)
-        num_rejected = torch.Tensor([len(rejected_rewards)]).to(self.accelerator.device)
+        num_chosen = torch.Tensor([len(chosen_rewards)]).to(
+            self.accelerator.device
+        )
+        num_rejected = torch.Tensor([len(rejected_rewards)]).to(
+            self.accelerator.device
+        )
 
         all_num_chosen = self.accelerator.gather(num_chosen).sum().item()
         all_num_rejected = self.accelerator.gather(num_rejected).sum().item()
 
         if all_num_chosen > 0:
-            metrics["rewards/chosen_sum"] = self.accelerator.gather(chosen_rewards.nansum()).nansum().item()
-            metrics["logps/chosen_sum"] = self.accelerator.gather(policy_chosen_logps.nansum()).nansum().item()
+            metrics["rewards/chosen_sum"] = (
+                self.accelerator.gather(chosen_rewards.nansum())
+                .nansum()
+                .item()
+            )
+            metrics["logps/chosen_sum"] = (
+                self.accelerator.gather(policy_chosen_logps.nansum())
+                .nansum()
+                .item()
+            )
             metrics["count/chosen"] = all_num_chosen
 
         if all_num_rejected > 0:
-            metrics["rewards/rejected_sum"] = self.accelerator.gather(rejected_rewards.nansum()).nansum().item()
-            metrics["logps/rejected_sum"] = self.accelerator.gather(policy_rejected_logps.nansum()).nansum().item()
+            metrics["rewards/rejected_sum"] = (
+                self.accelerator.gather(rejected_rewards.nansum())
+                .nansum()
+                .item()
+            )
+            metrics["logps/rejected_sum"] = (
+                self.accelerator.gather(policy_rejected_logps.nansum())
+                .nansum()
+                .item()
+            )
             metrics["count/rejected"] = all_num_rejected
 
         metrics["kl"] = kl.item()

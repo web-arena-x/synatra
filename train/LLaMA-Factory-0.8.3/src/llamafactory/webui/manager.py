@@ -14,7 +14,6 @@
 
 from typing import TYPE_CHECKING, Dict, Generator, List, Set, Tuple
 
-
 if TYPE_CHECKING:
     from gradio.components import Component
 
@@ -24,7 +23,9 @@ class Manager:
         self._id_to_elem: Dict[str, "Component"] = {}
         self._elem_to_id: Dict["Component", str] = {}
 
-    def add_elems(self, tab_name: str, elem_dict: Dict[str, "Component"]) -> None:
+    def add_elems(
+        self, tab_name: str, elem_dict: Dict[str, "Component"]
+    ) -> None:
         r"""
         Adds elements to manager.
         """

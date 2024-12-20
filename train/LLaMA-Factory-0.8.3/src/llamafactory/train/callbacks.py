@@ -25,7 +25,11 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 import torch
 import transformers
 from peft import PeftModel
-from transformers import PreTrainedModel, ProcessorMixin, TrainerCallback
+from transformers import (
+    PreTrainedModel,
+    ProcessorMixin,
+    TrainerCallback,
+)
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR, has_length
 from transformers.utils import (
     SAFE_WEIGHTS_NAME,
@@ -33,16 +37,23 @@ from transformers.utils import (
     is_safetensors_available,
 )
 
-from ..extras.constants import TRAINER_LOG, V_HEAD_SAFE_WEIGHTS_NAME, V_HEAD_WEIGHTS_NAME
+from ..extras.constants import (
+    TRAINER_LOG,
+    V_HEAD_SAFE_WEIGHTS_NAME,
+    V_HEAD_WEIGHTS_NAME,
+)
 from ..extras.logging import LoggerHandler, get_logger
-
 
 if is_safetensors_available():
     from safetensors import safe_open
     from safetensors.torch import save_file
 
 if TYPE_CHECKING:
-    from transformers import TrainerControl, TrainerState, TrainingArguments
+    from transformers import (
+        TrainerControl,
+        TrainerState,
+        TrainingArguments,
+    )
     from trl import AutoModelForCausalLMWithValueHead
 
 
@@ -50,7 +61,9 @@ logger = get_logger(__name__)
 
 
 def fix_valuehead_checkpoint(
-    model: "AutoModelForCausalLMWithValueHead", output_dir: str, safe_serialization: bool
+    model: "AutoModelForCausalLMWithValueHead",
+    output_dir: str,
+    safe_serialization: bool,
 ) -> None:
     r"""
     The model is already unwrapped.
@@ -68,10 +81,14 @@ def fix_valuehead_checkpoint(
     if safe_serialization:
         path_to_checkpoint = os.path.join(output_dir, SAFE_WEIGHTS_NAME)
         with safe_open(path_to_checkpoint, framework="pt", device="cpu") as f:
-            state_dict: Dict[str, torch.Tensor] = {key: f.get_tensor(key) for key in f.keys()}
+            state_dict: Dict[str, torch.Tensor] = {
+                key: f.get_tensor(key) for key in f.keys()
+            }
     else:
         path_to_checkpoint = os.path.join(output_dir, WEIGHTS_NAME)
-        state_dict: Dict[str, torch.Tensor] = torch.load(path_to_checkpoint, map_location="cpu")
+        state_dict: Dict[str, torch.Tensor] = torch.load(
+            path_to_checkpoint, map_location="cpu"
+        )
 
     decoder_state_dict = {}
     v_head_state_dict = {}
@@ -79,30 +96,49 @@ def fix_valuehead_checkpoint(
         if name.startswith("v_head."):
             v_head_state_dict[name] = param
         else:
-            decoder_state_dict[name.replace("pretrained_model.", "", 1)] = param
+            decoder_state_dict[
+                name.replace("pretrained_model.", "", 1)
+            ] = param
 
     model.pretrained_model.save_pretrained(
-        output_dir, state_dict=decoder_state_dict or None, safe_serialization=safe_serialization
+        output_dir,
+        state_dict=decoder_state_dict or None,
+        safe_serialization=safe_serialization,
     )
 
     if safe_serialization:
-        save_file(v_head_state_dict, os.path.join(output_dir, V_HEAD_SAFE_WEIGHTS_NAME), metadata={"format": "pt"})
+        save_file(
+            v_head_state_dict,
+            os.path.join(output_dir, V_HEAD_SAFE_WEIGHTS_NAME),
+            metadata={"format": "pt"},
+        )
     else:
-        torch.save(v_head_state_dict, os.path.join(output_dir, V_HEAD_WEIGHTS_NAME))
+        torch.save(
+            v_head_state_dict, os.path.join(output_dir, V_HEAD_WEIGHTS_NAME)
+        )
 
     os.remove(path_to_checkpoint)
     logger.info("Value head model saved at: {}".format(output_dir))
 
 
 class FixValueHeadModelCallback(TrainerCallback):
-    def on_save(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_save(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called after a checkpoint save.
         """
         if args.should_save:
             fix_valuehead_checkpoint(
                 model=kwargs.pop("model"),
-                output_dir=os.path.join(args.output_dir, "{}-{}".format(PREFIX_CHECKPOINT_DIR, state.global_step)),
+                output_dir=os.path.join(
+                    args.output_dir,
+                    "{}-{}".format(PREFIX_CHECKPOINT_DIR, state.global_step),
+                ),
                 safe_serialization=args.save_safetensors,
             )
 
@@ -114,12 +150,20 @@ class SaveProcessorCallback(TrainerCallback):
         """
         self.processor = processor
 
-    def on_train_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_train_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of training.
         """
         if args.should_save:
-            getattr(self.processor, "image_processor").save_pretrained(args.output_dir)
+            getattr(self.processor, "image_processor").save_pretrained(
+                args.output_dir
+            )
 
 
 class PissaConvertCallback(TrainerCallback):
@@ -127,21 +171,47 @@ class PissaConvertCallback(TrainerCallback):
     Initializes a callback for converting the PiSSA adapter to a normal one.
     """
 
-    def on_train_begin(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_train_begin(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the beginning of training.
         """
         if args.should_save:
             model = kwargs.pop("model")
             pissa_init_dir = os.path.join(args.output_dir, "pissa_init")
-            logger.info("Initial PiSSA adapter will be saved at: {}.".format(pissa_init_dir))
+            logger.info(
+                "Initial PiSSA adapter will be saved at: {}.".format(
+                    pissa_init_dir
+                )
+            )
             if isinstance(model, PeftModel):
-                init_lora_weights = getattr(model.peft_config["default"], "init_lora_weights")
-                setattr(model.peft_config["default"], "init_lora_weights", True)
-                model.save_pretrained(pissa_init_dir, safe_serialization=args.save_safetensors)
-                setattr(model.peft_config["default"], "init_lora_weights", init_lora_weights)
+                init_lora_weights = getattr(
+                    model.peft_config["default"], "init_lora_weights"
+                )
+                setattr(
+                    model.peft_config["default"], "init_lora_weights", True
+                )
+                model.save_pretrained(
+                    pissa_init_dir, safe_serialization=args.save_safetensors
+                )
+                setattr(
+                    model.peft_config["default"],
+                    "init_lora_weights",
+                    init_lora_weights,
+                )
 
-    def on_train_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_train_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of training.
         """
@@ -149,24 +219,48 @@ class PissaConvertCallback(TrainerCallback):
             model = kwargs.pop("model")
             pissa_init_dir = os.path.join(args.output_dir, "pissa_init")
             pissa_backup_dir = os.path.join(args.output_dir, "pissa_backup")
-            pissa_convert_dir = os.path.join(args.output_dir, "pissa_converted")
-            logger.info("Converted PiSSA adapter will be saved at: {}.".format(pissa_convert_dir))
+            pissa_convert_dir = os.path.join(
+                args.output_dir, "pissa_converted"
+            )
+            logger.info(
+                "Converted PiSSA adapter will be saved at: {}.".format(
+                    pissa_convert_dir
+                )
+            )
             # 1. save a pissa backup with init_lora_weights: True
             # 2. save a converted lora with init_lora_weights: pissa
             # 3. load the pissa backup with init_lora_weights: True
             # 4. delete the initial adapter and change init_lora_weights to pissa
             if isinstance(model, PeftModel):
-                init_lora_weights = getattr(model.peft_config["default"], "init_lora_weights")
-                setattr(model.peft_config["default"], "init_lora_weights", True)
-                model.save_pretrained(pissa_backup_dir, safe_serialization=args.save_safetensors)
-                setattr(model.peft_config["default"], "init_lora_weights", init_lora_weights)
-                model.save_pretrained(
-                    pissa_convert_dir, safe_serialization=args.save_safetensors, convert_pissa_to_lora=pissa_init_dir
+                init_lora_weights = getattr(
+                    model.peft_config["default"], "init_lora_weights"
                 )
-                model.load_adapter(pissa_backup_dir, "default", is_trainable=True)
+                setattr(
+                    model.peft_config["default"], "init_lora_weights", True
+                )
+                model.save_pretrained(
+                    pissa_backup_dir, safe_serialization=args.save_safetensors
+                )
+                setattr(
+                    model.peft_config["default"],
+                    "init_lora_weights",
+                    init_lora_weights,
+                )
+                model.save_pretrained(
+                    pissa_convert_dir,
+                    safe_serialization=args.save_safetensors,
+                    convert_pissa_to_lora=pissa_init_dir,
+                )
+                model.load_adapter(
+                    pissa_backup_dir, "default", is_trainable=True
+                )
                 model.set_adapter("default")
                 model.delete_adapter("pissa_init")
-                setattr(model.peft_config["default"], "init_lora_weights", init_lora_weights)
+                setattr(
+                    model.peft_config["default"],
+                    "init_lora_weights",
+                    init_lora_weights,
+                )
 
 
 class LogCallback(TrainerCallback):
@@ -185,10 +279,14 @@ class LogCallback(TrainerCallback):
         self.aborted = False
         self.do_train = False
         """ Web UI """
-        self.webui_mode = os.environ.get("LLAMABOARD_ENABLED", "0").lower() in ["true", "1"]
+        self.webui_mode = os.environ.get(
+            "LLAMABOARD_ENABLED", "0"
+        ).lower() in ["true", "1"]
         if self.webui_mode:
             signal.signal(signal.SIGABRT, self._set_abort)
-            self.logger_handler = LoggerHandler(os.environ.get("LLAMABOARD_WORKDIR"))
+            self.logger_handler = LoggerHandler(
+                os.environ.get("LLAMABOARD_WORKDIR")
+            )
             logging.root.addHandler(self.logger_handler)
             transformers.logging.add_handler(self.logger_handler)
 
@@ -212,7 +310,9 @@ class LogCallback(TrainerCallback):
         self.remaining_time = str(timedelta(seconds=int(remaining_time)))
 
     def _write_log(self, output_dir: str, logs: Dict[str, Any]) -> None:
-        with open(os.path.join(output_dir, TRAINER_LOG), "a", encoding="utf-8") as f:
+        with open(
+            os.path.join(output_dir, TRAINER_LOG), "a", encoding="utf-8"
+        ) as f:
             f.write(json.dumps(logs) + "\n")
 
     def _create_thread_pool(self, output_dir: str) -> None:
@@ -224,7 +324,13 @@ class LogCallback(TrainerCallback):
             self.thread_pool.shutdown(wait=True)
             self.thread_pool = None
 
-    def on_init_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_init_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of the initialization of the `Trainer`.
         """
@@ -233,10 +339,18 @@ class LogCallback(TrainerCallback):
             and os.path.exists(os.path.join(args.output_dir, TRAINER_LOG))
             and args.overwrite_output_dir
         ):
-            logger.warning("Previous trainer log in this folder will be deleted.")
+            logger.warning(
+                "Previous trainer log in this folder will be deleted."
+            )
             os.remove(os.path.join(args.output_dir, TRAINER_LOG))
 
-    def on_train_begin(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_train_begin(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the beginning of training.
         """
@@ -245,13 +359,25 @@ class LogCallback(TrainerCallback):
             self._reset(max_steps=state.max_steps)
             self._create_thread_pool(output_dir=args.output_dir)
 
-    def on_train_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_train_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of training.
         """
         self._close_thread_pool()
 
-    def on_substep_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_substep_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of an substep during gradient accumulation.
         """
@@ -259,7 +385,13 @@ class LogCallback(TrainerCallback):
             control.should_epoch_stop = True
             control.should_training_stop = True
 
-    def on_step_end(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_step_end(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called at the end of a training step.
         """
@@ -267,21 +399,39 @@ class LogCallback(TrainerCallback):
             control.should_epoch_stop = True
             control.should_training_stop = True
 
-    def on_evaluate(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_evaluate(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called after an evaluation phase.
         """
         if not self.do_train:
             self._close_thread_pool()
 
-    def on_predict(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_predict(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called after a successful prediction.
         """
         if not self.do_train:
             self._close_thread_pool()
 
-    def on_log(self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs):
+    def on_log(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
+    ):
         r"""
         Event called after logging the last logs.
         """
@@ -299,17 +449,26 @@ class LogCallback(TrainerCallback):
             accuracy=state.log_history[-1].get("rewards/accuracies", None),
             learning_rate=state.log_history[-1].get("learning_rate", None),
             epoch=state.log_history[-1].get("epoch", None),
-            percentage=round(self.cur_steps / self.max_steps * 100, 2) if self.max_steps != 0 else 100,
+            percentage=round(self.cur_steps / self.max_steps * 100, 2)
+            if self.max_steps != 0
+            else 100,
             elapsed_time=self.elapsed_time,
             remaining_time=self.remaining_time,
-            throughput="{:.2f}".format(state.num_input_tokens_seen / (time.time() - self.start_time)),
+            throughput="{:.2f}".format(
+                state.num_input_tokens_seen / (time.time() - self.start_time)
+            ),
             total_tokens=state.num_input_tokens_seen,
         )
         logs = {k: v for k, v in logs.items() if v is not None}
-        if self.webui_mode and all(key in logs for key in ["loss", "learning_rate", "epoch"]):
+        if self.webui_mode and all(
+            key in logs for key in ["loss", "learning_rate", "epoch"]
+        ):
             logger.info(
                 "{{'loss': {:.4f}, 'learning_rate': {:2.4e}, 'epoch': {:.2f}, 'throughput': {}}}".format(
-                    logs["loss"], logs["learning_rate"], logs["epoch"], logs["throughput"]
+                    logs["loss"],
+                    logs["learning_rate"],
+                    logs["epoch"],
+                    logs["throughput"],
                 )
             )
 
@@ -317,7 +476,11 @@ class LogCallback(TrainerCallback):
             self.thread_pool.submit(self._write_log, args.output_dir, logs)
 
     def on_prediction_step(
-        self, args: "TrainingArguments", state: "TrainerState", control: "TrainerControl", **kwargs
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        **kwargs
     ):
         r"""
         Event called after a prediction step.
@@ -342,7 +505,9 @@ class LogCallback(TrainerCallback):
                 logs = dict(
                     current_steps=self.cur_steps,
                     total_steps=self.max_steps,
-                    percentage=round(self.cur_steps / self.max_steps * 100, 2) if self.max_steps != 0 else 100,
+                    percentage=round(self.cur_steps / self.max_steps * 100, 2)
+                    if self.max_steps != 0
+                    else 100,
                     elapsed_time=self.elapsed_time,
                     remaining_time=self.remaining_time,
                 )

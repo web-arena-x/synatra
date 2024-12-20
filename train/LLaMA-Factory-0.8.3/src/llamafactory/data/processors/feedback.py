@@ -12,12 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from ...extras.constants import IGNORE_INDEX
 from ...extras.logging import get_logger
-from .processor_utils import get_paligemma_token_type_ids, get_pixel_values, infer_seqlen
-
+from .processor_utils import (
+    get_paligemma_token_type_ids,
+    get_pixel_values,
+    infer_seqlen,
+)
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizer, ProcessorMixin
@@ -40,7 +51,9 @@ def _encode_feedback_example(
     processor: Optional["ProcessorMixin"],
     data_args: "DataArguments",
 ) -> Tuple[List[int], List[int], List[int], List[int], bool]:
-    if processor is not None and not hasattr(processor, "image_seq_length"):  # llava-like models
+    if processor is not None and not hasattr(
+        processor, "image_seq_length"
+    ):  # llava-like models
         prompt[0]["content"] = template.image_token + prompt[0]["content"]
 
     if response[0]["content"]:  # desired example
@@ -55,22 +68,36 @@ def _encode_feedback_example(
     else:
         kl_messages = prompt + [kl_response[1]]
 
-    prompt_ids, response_ids = template.encode_oneturn(tokenizer, messages, system, tools)
-    kl_prompt_ids, kl_response_ids = template.encode_oneturn(tokenizer, kl_messages, system, tools)
+    prompt_ids, response_ids = template.encode_oneturn(
+        tokenizer, messages, system, tools
+    )
+    kl_prompt_ids, kl_response_ids = template.encode_oneturn(
+        tokenizer, kl_messages, system, tools
+    )
 
     if template.efficient_eos:
         response_ids += [tokenizer.eos_token_id]
         kl_response_ids += [tokenizer.eos_token_id]
 
-    if processor is not None and hasattr(processor, "image_seq_length"):  # paligemma models
+    if processor is not None and hasattr(
+        processor, "image_seq_length"
+    ):  # paligemma models
         image_token_id = tokenizer.convert_tokens_to_ids(template.image_token)
-        prompt_ids = [image_token_id] * getattr(processor, "image_seq_length") + prompt_ids
-        kl_prompt_ids = [image_token_id] * getattr(processor, "image_seq_length") + kl_prompt_ids
+        prompt_ids = [image_token_id] * getattr(
+            processor, "image_seq_length"
+        ) + prompt_ids
+        kl_prompt_ids = [image_token_id] * getattr(
+            processor, "image_seq_length"
+        ) + kl_prompt_ids
 
-    source_len, target_len = infer_seqlen(len(prompt_ids), len(response_ids), data_args.cutoff_len)
+    source_len, target_len = infer_seqlen(
+        len(prompt_ids), len(response_ids), data_args.cutoff_len
+    )
     prompt_ids = prompt_ids[:source_len]
     response_ids = response_ids[:target_len]
-    kl_source_len, kl_target_len = infer_seqlen(len(kl_prompt_ids), len(kl_response_ids), data_args.cutoff_len)
+    kl_source_len, kl_target_len = infer_seqlen(
+        len(kl_prompt_ids), len(kl_response_ids), data_args.cutoff_len
+    )
     kl_prompt_ids = kl_prompt_ids[:kl_source_len]
     kl_response_ids = kl_response_ids[:kl_target_len]
 
@@ -107,11 +134,24 @@ def preprocess_feedback_dataset(
             model_inputs["kl_token_type_ids"] = []
 
     for i in range(len(examples["prompt"])):
-        if len(examples["prompt"][i]) % 2 != 1 or len(examples["response"][i]) < 2:
-            logger.warning("Dropped invalid example: {}".format(examples["prompt"][i] + examples["response"][i]))
+        if (
+            len(examples["prompt"][i]) % 2 != 1
+            or len(examples["response"][i]) < 2
+        ):
+            logger.warning(
+                "Dropped invalid example: {}".format(
+                    examples["prompt"][i] + examples["response"][i]
+                )
+            )
             continue
 
-        input_ids, labels, kl_input_ids, kl_labels, kto_tag = _encode_feedback_example(
+        (
+            input_ids,
+            labels,
+            kl_input_ids,
+            kl_labels,
+            kto_tag,
+        ) = _encode_feedback_example(
             prompt=examples["prompt"][i],
             response=examples["response"][i],
             kl_response=kl_response[i],
@@ -130,10 +170,16 @@ def preprocess_feedback_dataset(
         model_inputs["kl_labels"].append(kl_labels)
         model_inputs["kto_tags"].append(kto_tag)
         if processor is not None:
-            model_inputs["pixel_values"].append(get_pixel_values(examples["images"][i], processor))
+            model_inputs["pixel_values"].append(
+                get_pixel_values(examples["images"][i], processor)
+            )
             if hasattr(processor, "image_seq_length"):  # paligemma models
-                model_inputs["token_type_ids"].append(get_paligemma_token_type_ids(len(input_ids), processor))
-                model_inputs["kl_token_type_ids"].append(get_paligemma_token_type_ids(len(kl_input_ids), processor))
+                model_inputs["token_type_ids"].append(
+                    get_paligemma_token_type_ids(len(input_ids), processor)
+                )
+                model_inputs["kl_token_type_ids"].append(
+                    get_paligemma_token_type_ids(len(kl_input_ids), processor)
+                )
 
     desirable_num = sum([1 for tag in model_inputs["kto_tags"] if tag])
     undesirable_num = len(model_inputs["kto_tags"]) - desirable_num

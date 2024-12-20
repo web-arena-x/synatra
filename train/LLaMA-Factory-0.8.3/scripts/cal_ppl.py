@@ -19,14 +19,16 @@ from typing import Any, Dict, Literal, Optional, Sequence
 
 import fire
 import torch
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from transformers import DataCollatorForLanguageModeling, DataCollatorForSeq2Seq
-
 from llamafactory.data import get_dataset
 from llamafactory.extras.constants import IGNORE_INDEX
 from llamafactory.hparams import get_train_args
 from llamafactory.model import load_model, load_tokenizer
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import (
+    DataCollatorForLanguageModeling,
+    DataCollatorForSeq2Seq,
+)
 
 
 @dataclass
@@ -37,7 +39,9 @@ class PairwiseDataCollatorWithPadding(DataCollatorForSeq2Seq):
 
     train_on_prompt: bool = False
 
-    def __call__(self, features: Sequence[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
+    def __call__(
+        self, features: Sequence[Dict[str, Any]]
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Pads batched data to the longest sequence in the batch.
 
@@ -46,11 +50,23 @@ class PairwiseDataCollatorWithPadding(DataCollatorForSeq2Seq):
         """
         chosen_features = []
         for feature in features:
-            prompt_len, answer_len = len(feature["prompt_ids"]), len(feature["chosen_ids"])
+            prompt_len, answer_len = len(feature["prompt_ids"]), len(
+                feature["chosen_ids"]
+            )
             input_ids = feature["prompt_ids"] + feature["chosen_ids"]
             attention_mask = [1] * (prompt_len + answer_len)
-            labels = input_ids if self.train_on_prompt else [IGNORE_INDEX] * prompt_len + feature["chosen_ids"]
-            chosen_features.append({"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels})
+            labels = (
+                input_ids
+                if self.train_on_prompt
+                else [IGNORE_INDEX] * prompt_len + feature["chosen_ids"]
+            )
+            chosen_features.append(
+                {
+                    "input_ids": input_ids,
+                    "attention_mask": attention_mask,
+                    "labels": labels,
+                }
+            )
 
         return super().__call__(chosen_features)
 
@@ -88,20 +104,38 @@ def cal_ppl(
     )
     tokenizer_module = load_tokenizer(model_args)
     tokenizer = tokenizer_module["tokenizer"]
-    trainset = get_dataset(model_args, data_args, training_args, stage, **tokenizer_module)["train_dataset"]
-    model = load_model(tokenizer, model_args, finetuning_args, is_trainable=False)
+    trainset = get_dataset(
+        model_args, data_args, training_args, stage, **tokenizer_module
+    )["train_dataset"]
+    model = load_model(
+        tokenizer, model_args, finetuning_args, is_trainable=False
+    )
     if stage == "pt":
-        data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer, mlm=False
+        )
     elif stage == "sft":
-        data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, label_pad_token_id=IGNORE_INDEX)
+        data_collator = DataCollatorForSeq2Seq(
+            tokenizer=tokenizer, label_pad_token_id=IGNORE_INDEX
+        )
     elif stage == "rm":
         data_collator = PairwiseDataCollatorWithPadding(
-            tokenizer=tokenizer, label_pad_token_id=IGNORE_INDEX, train_on_prompt=train_on_prompt
+            tokenizer=tokenizer,
+            label_pad_token_id=IGNORE_INDEX,
+            train_on_prompt=train_on_prompt,
         )
     else:
-        raise NotImplementedError("Stage does not supported: {}.".format(stage))
+        raise NotImplementedError(
+            "Stage does not supported: {}.".format(stage)
+        )
 
-    dataloader = DataLoader(trainset, batch_size, shuffle=False, collate_fn=data_collator, pin_memory=True)
+    dataloader = DataLoader(
+        trainset,
+        batch_size,
+        shuffle=False,
+        collate_fn=data_collator,
+        pin_memory=True,
+    )
     criterion = torch.nn.CrossEntropyLoss(reduction="none")
     total_ppl = 0
     perplexities = []
@@ -113,11 +147,19 @@ def cal_ppl(
             shift_logits: "torch.Tensor" = outputs["logits"][..., :-1, :]
             shift_labels: "torch.Tensor" = batch["labels"][..., 1:]
             loss_mask = shift_labels != IGNORE_INDEX
-            flatten_logits = shift_logits.contiguous().view(shift_labels.size(0) * shift_labels.size(1), -1)
+            flatten_logits = shift_logits.contiguous().view(
+                shift_labels.size(0) * shift_labels.size(1), -1
+            )
             flatten_labels = shift_labels.contiguous().view(-1)
-            token_logps: "torch.Tensor" = criterion(flatten_logits, flatten_labels)
-            token_logps = token_logps.contiguous().view(shift_logits.size(0), -1)
-            sentence_logps = (token_logps * loss_mask).sum(-1) / loss_mask.sum(-1)
+            token_logps: "torch.Tensor" = criterion(
+                flatten_logits, flatten_labels
+            )
+            token_logps = token_logps.contiguous().view(
+                shift_logits.size(0), -1
+            )
+            sentence_logps = (token_logps * loss_mask).sum(-1) / loss_mask.sum(
+                -1
+            )
             total_ppl += sentence_logps.exp().sum().item()
             perplexities.extend(sentence_logps.exp().tolist())
 

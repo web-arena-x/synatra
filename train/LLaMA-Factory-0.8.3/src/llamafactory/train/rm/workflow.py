@@ -25,11 +25,14 @@ from ..trainer_utils import create_modelcard_and_push
 from .metric import ComputeAccuracy
 from .trainer import PairwiseTrainer
 
-
 if TYPE_CHECKING:
     from transformers import Seq2SeqTrainingArguments, TrainerCallback
 
-    from ...hparams import DataArguments, FinetuningArguments, ModelArguments
+    from ...hparams import (
+        DataArguments,
+        FinetuningArguments,
+        ModelArguments,
+    )
 
 
 def run_rm(
@@ -41,12 +44,24 @@ def run_rm(
 ):
     tokenizer_module = load_tokenizer(model_args)
     tokenizer = tokenizer_module["tokenizer"]
-    dataset_module = get_dataset(model_args, data_args, training_args, stage="rm", **tokenizer_module)
-    model = load_model(tokenizer, model_args, finetuning_args, training_args.do_train, add_valuehead=True)
-    data_collator = PairwiseDataCollatorWithPadding(tokenizer, pad_to_multiple_of=8)
+    dataset_module = get_dataset(
+        model_args, data_args, training_args, stage="rm", **tokenizer_module
+    )
+    model = load_model(
+        tokenizer,
+        model_args,
+        finetuning_args,
+        training_args.do_train,
+        add_valuehead=True,
+    )
+    data_collator = PairwiseDataCollatorWithPadding(
+        tokenizer, pad_to_multiple_of=8
+    )
 
     # Update arguments
-    training_args.remove_unused_columns = False  # important for pairwise dataset
+    training_args.remove_unused_columns = (
+        False  # important for pairwise dataset
+    )
 
     # Initialize our Trainer
     trainer = PairwiseTrainer(
@@ -62,16 +77,23 @@ def run_rm(
 
     # Training
     if training_args.do_train:
-        train_result = trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
+        train_result = trainer.train(
+            resume_from_checkpoint=training_args.resume_from_checkpoint
+        )
         trainer.save_model()
         if training_args.should_save:
-            fix_valuehead_checkpoint(model, training_args.output_dir, training_args.save_safetensors)
+            fix_valuehead_checkpoint(
+                model, training_args.output_dir, training_args.save_safetensors
+            )
 
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
         if trainer.is_world_process_zero() and finetuning_args.plot_loss:
-            plot_loss(training_args.output_dir, keys=["loss", "eval_loss", "eval_accuracy"])
+            plot_loss(
+                training_args.output_dir,
+                keys=["loss", "eval_loss", "eval_accuracy"],
+            )
 
     # Evaluation
     if training_args.do_eval:
@@ -81,10 +103,14 @@ def run_rm(
 
     # Predict
     if training_args.do_predict:
-        predict_results = trainer.predict(dataset_module["eval_dataset"], metric_key_prefix="predict")
+        predict_results = trainer.predict(
+            dataset_module["eval_dataset"], metric_key_prefix="predict"
+        )
         trainer.log_metrics("predict", predict_results.metrics)
         trainer.save_metrics("predict", predict_results.metrics)
         trainer.save_predictions(predict_results)
 
     # Create model card
-    create_modelcard_and_push(trainer, model_args, data_args, training_args, finetuning_args)
+    create_modelcard_and_push(
+        trainer, model_args, data_args, training_args, finetuning_args
+    )

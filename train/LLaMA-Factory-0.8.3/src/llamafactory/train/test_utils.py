@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Dict, Optional, Sequence, Set, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 import torch
 from peft import PeftModel
@@ -24,33 +32,56 @@ from ..extras.misc import get_current_device
 from ..hparams import get_infer_args, get_train_args
 from ..model import load_model, load_tokenizer
 
-
 if TYPE_CHECKING:
     from datasets import Dataset
     from peft import LoraModel
     from transformers import PreTrainedModel
 
 
-def compare_model(model_a: "torch.nn.Module", model_b: "torch.nn.Module", diff_keys: Sequence[str] = []) -> None:
+def compare_model(
+    model_a: "torch.nn.Module",
+    model_b: "torch.nn.Module",
+    diff_keys: Sequence[str] = [],
+) -> None:
     state_dict_a = model_a.state_dict()
     state_dict_b = model_b.state_dict()
     assert set(state_dict_a.keys()) == set(state_dict_b.keys())
     for name in state_dict_a.keys():
         if any(key in name for key in diff_keys):
-            assert torch.allclose(state_dict_a[name], state_dict_b[name], rtol=1e-4, atol=1e-5) is False
+            assert (
+                torch.allclose(
+                    state_dict_a[name],
+                    state_dict_b[name],
+                    rtol=1e-4,
+                    atol=1e-5,
+                )
+                is False
+            )
         else:
-            assert torch.allclose(state_dict_a[name], state_dict_b[name], rtol=1e-4, atol=1e-5) is True
+            assert (
+                torch.allclose(
+                    state_dict_a[name],
+                    state_dict_b[name],
+                    rtol=1e-4,
+                    atol=1e-5,
+                )
+                is True
+            )
 
 
 def check_lora_model(model: "LoraModel") -> Tuple[Set[str], Set[str]]:
     linear_modules, extra_modules = set(), set()
     for name, param in model.named_parameters():
         if any(module in name for module in ["lora_A", "lora_B"]):
-            linear_modules.add(name.split(".lora_", maxsplit=1)[0].split(".")[-1])
+            linear_modules.add(
+                name.split(".lora_", maxsplit=1)[0].split(".")[-1]
+            )
             assert param.requires_grad is True
             assert param.dtype == torch.float32
         elif "modules_to_save" in name:
-            extra_modules.add(name.split(".modules_to_save", maxsplit=1)[0].split(".")[-1])
+            extra_modules.add(
+                name.split(".modules_to_save", maxsplit=1)[0].split(".")[-1]
+            )
             assert param.requires_grad is True
             assert param.dtype == torch.float32
         else:
@@ -60,16 +91,32 @@ def check_lora_model(model: "LoraModel") -> Tuple[Set[str], Set[str]]:
     return linear_modules, extra_modules
 
 
-def load_train_model(add_valuehead: bool = False, **kwargs) -> "PreTrainedModel":
+def load_train_model(
+    add_valuehead: bool = False, **kwargs
+) -> "PreTrainedModel":
     model_args, _, _, finetuning_args, _ = get_train_args(kwargs)
     tokenizer = load_tokenizer(model_args)["tokenizer"]
-    return load_model(tokenizer, model_args, finetuning_args, is_trainable=True, add_valuehead=add_valuehead)
+    return load_model(
+        tokenizer,
+        model_args,
+        finetuning_args,
+        is_trainable=True,
+        add_valuehead=add_valuehead,
+    )
 
 
-def load_infer_model(add_valuehead: bool = False, **kwargs) -> "PreTrainedModel":
+def load_infer_model(
+    add_valuehead: bool = False, **kwargs
+) -> "PreTrainedModel":
     model_args, _, finetuning_args, _ = get_infer_args(kwargs)
     tokenizer = load_tokenizer(model_args)["tokenizer"]
-    return load_model(tokenizer, model_args, finetuning_args, is_trainable=False, add_valuehead=add_valuehead)
+    return load_model(
+        tokenizer,
+        model_args,
+        finetuning_args,
+        is_trainable=False,
+        add_valuehead=add_valuehead,
+    )
 
 
 def load_reference_model(
@@ -81,8 +128,12 @@ def load_reference_model(
     add_valuehead: bool = False,
 ) -> Union["PreTrainedModel", "LoraModel"]:
     if add_valuehead:
-        model: "AutoModelForCausalLMWithValueHead" = AutoModelForCausalLMWithValueHead.from_pretrained(
-            model_path, torch_dtype=torch.float16, device_map=get_current_device()
+        model: "AutoModelForCausalLMWithValueHead" = (
+            AutoModelForCausalLMWithValueHead.from_pretrained(
+                model_path,
+                torch_dtype=torch.float16,
+                device_map=get_current_device(),
+            )
         )
         if not is_trainable:
             model.v_head = model.v_head.to(torch.float16)
@@ -94,7 +145,10 @@ def load_reference_model(
     )
     if use_lora or use_pissa:
         model = PeftModel.from_pretrained(
-            model, lora_path, subfolder="pissa_init" if use_pissa else None, is_trainable=is_trainable
+            model,
+            lora_path,
+            subfolder="pissa_init" if use_pissa else None,
+            is_trainable=is_trainable,
         )
         for param in filter(lambda p: p.requires_grad, model.parameters()):
             param.data = param.data.to(torch.float32)
@@ -105,13 +159,26 @@ def load_reference_model(
 def load_train_dataset(**kwargs) -> "Dataset":
     model_args, data_args, training_args, _, _ = get_train_args(kwargs)
     tokenizer_module = load_tokenizer(model_args)
-    dataset_module = get_dataset(model_args, data_args, training_args, stage=kwargs["stage"], **tokenizer_module)
+    dataset_module = get_dataset(
+        model_args,
+        data_args,
+        training_args,
+        stage=kwargs["stage"],
+        **tokenizer_module
+    )
     return dataset_module["train_dataset"]
 
 
 def patch_valuehead_model():
-    def post_init(self: "AutoModelForCausalLMWithValueHead", state_dict: Dict[str, "torch.Tensor"]) -> None:
-        state_dict = {k[7:]: state_dict[k] for k in state_dict.keys() if k.startswith("v_head.")}
+    def post_init(
+        self: "AutoModelForCausalLMWithValueHead",
+        state_dict: Dict[str, "torch.Tensor"],
+    ) -> None:
+        state_dict = {
+            k[7:]: state_dict[k]
+            for k in state_dict.keys()
+            if k.startswith("v_head.")
+        }
         self.v_head.load_state_dict(state_dict, strict=False)
         del state_dict
 

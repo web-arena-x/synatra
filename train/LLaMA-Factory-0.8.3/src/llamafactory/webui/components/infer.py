@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Dict
 from ...extras.packages import is_gradio_available
 from .chatbot import create_chat_box
 
-
 if is_gradio_available():
     import gradio as gr
 
@@ -33,8 +32,12 @@ def create_infer_tab(engine: "Engine") -> Dict[str, "Component"]:
     elem_dict = dict()
 
     with gr.Row():
-        infer_backend = gr.Dropdown(choices=["huggingface", "vllm"], value="huggingface")
-        infer_dtype = gr.Dropdown(choices=["auto", "float16", "bfloat16", "float32"], value="auto")
+        infer_backend = gr.Dropdown(
+            choices=["huggingface", "vllm"], value="huggingface"
+        )
+        infer_dtype = gr.Dropdown(
+            choices=["auto", "float16", "bfloat16", "float32"], value="auto"
+        )
 
     with gr.Row():
         load_btn = gr.Button()
@@ -57,12 +60,16 @@ def create_infer_tab(engine: "Engine") -> Dict[str, "Component"]:
     elem_dict.update(chat_elems)
 
     load_btn.click(engine.chatter.load_model, input_elems, [info_box]).then(
-        lambda: gr.Column(visible=engine.chatter.loaded), outputs=[chat_elems["chat_box"]]
+        lambda: gr.Column(visible=engine.chatter.loaded),
+        outputs=[chat_elems["chat_box"]],
     )
 
-    unload_btn.click(engine.chatter.unload_model, input_elems, [info_box]).then(
-        lambda: ([], []), outputs=[chatbot, messages]
-    ).then(lambda: gr.Column(visible=engine.chatter.loaded), outputs=[chat_elems["chat_box"]])
+    unload_btn.click(
+        engine.chatter.unload_model, input_elems, [info_box]
+    ).then(lambda: ([], []), outputs=[chatbot, messages]).then(
+        lambda: gr.Column(visible=engine.chatter.loaded),
+        outputs=[chat_elems["chat_box"]],
+    )
 
     engine.manager.get_elem_by_id("top.visual_inputs").change(
         lambda enabled: gr.Column(visible=enabled),

@@ -5,8 +5,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-from PIL import Image
-
 from agent.prompts import *
 from browser_env import (
     Action,
@@ -15,6 +13,7 @@ from browser_env import (
     StateInfo,
     action2str,
 )
+from PIL import Image
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>

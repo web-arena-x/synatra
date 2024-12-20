@@ -21,15 +21,16 @@ from typing import Literal
 
 import fire
 import torch
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from transformers import DataCollatorForLanguageModeling, DataCollatorForSeq2Seq
-
 from llamafactory.data import get_dataset
 from llamafactory.extras.constants import IGNORE_INDEX
 from llamafactory.hparams import get_train_args
 from llamafactory.model import load_tokenizer
-
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import (
+    DataCollatorForLanguageModeling,
+    DataCollatorForSeq2Seq,
+)
 
 BASE_LR = 3e-4  # 1.5e-4 for 30B-70B models
 BASE_BS = 4_000_000  # from llama paper
@@ -66,15 +67,29 @@ def calculate_lr(
     )
     tokenizer_module = load_tokenizer(model_args)
     tokenizer = tokenizer_module["tokenizer"]
-    trainset = get_dataset(model_args, data_args, training_args, stage, **tokenizer_module)["train_dataset"]
+    trainset = get_dataset(
+        model_args, data_args, training_args, stage, **tokenizer_module
+    )["train_dataset"]
     if stage == "pt":
-        data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer, mlm=False
+        )
     elif stage == "sft":
-        data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, label_pad_token_id=IGNORE_INDEX)
+        data_collator = DataCollatorForSeq2Seq(
+            tokenizer=tokenizer, label_pad_token_id=IGNORE_INDEX
+        )
     else:
-        raise NotImplementedError("Stage does not supported: {}.".format(stage))
+        raise NotImplementedError(
+            "Stage does not supported: {}.".format(stage)
+        )
 
-    dataloader = DataLoader(trainset, batch_size, shuffle=False, collate_fn=data_collator, pin_memory=True)
+    dataloader = DataLoader(
+        trainset,
+        batch_size,
+        shuffle=False,
+        collate_fn=data_collator,
+        pin_memory=True,
+    )
     valid_tokens, total_tokens = 0, 0
     for batch in tqdm(dataloader):
         valid_tokens += torch.sum(batch["labels"] != IGNORE_INDEX).item()
@@ -83,7 +98,9 @@ def calculate_lr(
     batch_max_len = cutoff_len * batch_size  # max tokens in a batch
     valid_ratio = valid_tokens / total_tokens
     batch_valid_len = batch_max_len * valid_ratio
-    lr = BASE_LR * math.sqrt(batch_valid_len / BASE_BS)  # lr ~ sqrt(batch_size)
+    lr = BASE_LR * math.sqrt(
+        batch_valid_len / BASE_BS
+    )  # lr ~ sqrt(batch_size)
     lr = lr / 6.0 if is_mistral else lr
     print(
         "Optimal learning rate is {:.2e} for valid ratio% {:.2f} and effective batch size {:.2f}".format(

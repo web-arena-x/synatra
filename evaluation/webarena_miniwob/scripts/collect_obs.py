@@ -6,8 +6,6 @@ import time
 from typing import Dict, Optional, Tuple, Type, Union, cast
 
 import pytest
-from playwright.sync_api import Page, expect
-
 from browser_env import (
     ScriptBrowserEnv,
     create_id_based_action,
@@ -16,6 +14,7 @@ from browser_env import (
     create_scroll_action,
 )
 from browser_env.env_config import *
+from playwright.sync_api import Page, expect
 
 HEADLESS = False
 

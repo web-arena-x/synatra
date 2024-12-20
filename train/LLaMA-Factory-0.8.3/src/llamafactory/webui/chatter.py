@@ -14,7 +14,15 @@
 
 import json
 import os
-from typing import TYPE_CHECKING, Dict, Generator, List, Optional, Sequence, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from numpy.typing import NDArray
 
@@ -26,7 +34,6 @@ from ..extras.packages import is_gradio_available
 from .common import QUANTIZATION_BITS, get_save_dir
 from .locales import ALERTS
 
-
 if TYPE_CHECKING:
     from ..chat import BaseEngine
     from .manager import Manager
@@ -37,7 +44,12 @@ if is_gradio_available():
 
 
 class WebChatModel(ChatModel):
-    def __init__(self, manager: "Manager", demo_mode: bool = False, lazy_init: bool = True) -> None:
+    def __init__(
+        self,
+        manager: "Manager",
+        demo_mode: bool = False,
+        lazy_init: bool = True,
+    ) -> None:
         self.manager = manager
         self.demo_mode = demo_mode
         self.engine: Optional["BaseEngine"] = None
@@ -45,12 +57,20 @@ class WebChatModel(ChatModel):
         if not lazy_init:  # read arguments from command line
             super().__init__()
 
-        if demo_mode and os.environ.get("DEMO_MODEL") and os.environ.get("DEMO_TEMPLATE"):  # load demo model
+        if (
+            demo_mode
+            and os.environ.get("DEMO_MODEL")
+            and os.environ.get("DEMO_TEMPLATE")
+        ):  # load demo model
             model_name_or_path = os.environ.get("DEMO_MODEL")
             template = os.environ.get("DEMO_TEMPLATE")
             infer_backend = os.environ.get("DEMO_BACKEND", "huggingface")
             super().__init__(
-                dict(model_name_or_path=model_name_or_path, template=template, infer_backend=infer_backend)
+                dict(
+                    model_name_or_path=model_name_or_path,
+                    template=template,
+                    infer_backend=infer_backend,
+                )
             )
 
     @property
@@ -59,8 +79,14 @@ class WebChatModel(ChatModel):
 
     def load_model(self, data) -> Generator[str, None, None]:
         get = lambda elem_id: data[self.manager.get_elem_by_id(elem_id)]
-        lang, model_name, model_path = get("top.lang"), get("top.model_name"), get("top.model_path")
-        finetuning_type, checkpoint_path = get("top.finetuning_type"), get("top.checkpoint_path")
+        lang, model_name, model_path = (
+            get("top.lang"),
+            get("top.model_name"),
+            get("top.model_path"),
+        )
+        finetuning_type, checkpoint_path = get("top.finetuning_type"), get(
+            "top.checkpoint_path"
+        )
         error = ""
         if self.loaded:
             error = ALERTS["err_exists"][lang]
@@ -91,7 +117,9 @@ class WebChatModel(ChatModel):
             flash_attn="fa2" if get("top.booster") == "flashattn2" else "auto",
             use_unsloth=(get("top.booster") == "unsloth"),
             visual_inputs=get("top.visual_inputs"),
-            rope_scaling=get("top.rope_scaling") if get("top.rope_scaling") in ["linear", "dynamic"] else None,
+            rope_scaling=get("top.rope_scaling")
+            if get("top.rope_scaling") in ["linear", "dynamic"]
+            else None,
             infer_backend=get("infer.infer_backend"),
             infer_dtype=get("infer.infer_dtype"),
         )
@@ -99,10 +127,15 @@ class WebChatModel(ChatModel):
         if checkpoint_path:
             if finetuning_type in PEFT_METHODS:  # list
                 args["adapter_name_or_path"] = ",".join(
-                    [get_save_dir(model_name, finetuning_type, adapter) for adapter in checkpoint_path]
+                    [
+                        get_save_dir(model_name, finetuning_type, adapter)
+                        for adapter in checkpoint_path
+                    ]
                 )
             else:  # str
-                args["model_name_or_path"] = get_save_dir(model_name, finetuning_type, checkpoint_path)
+                args["model_name_or_path"] = get_save_dir(
+                    model_name, finetuning_type, checkpoint_path
+                )
 
         super().__init__(args)
         yield ALERTS["info_loaded"][lang]
@@ -127,7 +160,11 @@ class WebChatModel(ChatModel):
         role: str,
         query: str,
     ) -> Tuple[List[List[Optional[str]]], List[Dict[str, str]], str]:
-        return chatbot + [[query, None]], messages + [{"role": role, "content": query}], ""
+        return (
+            chatbot + [[query, None]],
+            messages + [{"role": role, "content": query}],
+            "",
+        )
 
     def stream(
         self,
@@ -139,11 +176,19 @@ class WebChatModel(ChatModel):
         max_new_tokens: int,
         top_p: float,
         temperature: float,
-    ) -> Generator[Tuple[List[List[Optional[str]]], List[Dict[str, str]]], None, None]:
+    ) -> Generator[
+        Tuple[List[List[Optional[str]]], List[Dict[str, str]]], None, None
+    ]:
         chatbot[-1][1] = ""
         response = ""
         for new_text in self.stream_chat(
-            messages, system, tools, image, max_new_tokens=max_new_tokens, top_p=top_p, temperature=temperature
+            messages,
+            system,
+            tools,
+            image,
+            max_new_tokens=max_new_tokens,
+            top_p=top_p,
+            temperature=temperature,
         ):
             response += new_text
             if tools:
@@ -152,12 +197,21 @@ class WebChatModel(ChatModel):
                 result = response
 
             if isinstance(result, list):
-                tool_calls = [{"name": tool[0], "arguments": json.loads(tool[1])} for tool in result]
-                tool_calls = json.dumps(tool_calls, indent=4, ensure_ascii=False)
-                output_messages = messages + [{"role": Role.FUNCTION.value, "content": tool_calls}]
+                tool_calls = [
+                    {"name": tool[0], "arguments": json.loads(tool[1])}
+                    for tool in result
+                ]
+                tool_calls = json.dumps(
+                    tool_calls, indent=4, ensure_ascii=False
+                )
+                output_messages = messages + [
+                    {"role": Role.FUNCTION.value, "content": tool_calls}
+                ]
                 bot_text = "```json\n" + tool_calls + "\n```"
             else:
-                output_messages = messages + [{"role": Role.ASSISTANT.value, "content": result}]
+                output_messages = messages + [
+                    {"role": Role.ASSISTANT.value, "content": result}
+                ]
                 bot_text = result
 
             chatbot[-1][1] = bot_text

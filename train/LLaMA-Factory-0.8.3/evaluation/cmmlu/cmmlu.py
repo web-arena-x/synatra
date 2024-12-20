@@ -17,7 +17,6 @@ import os
 import datasets
 import pandas as pd
 
-
 _CITATION = """\
 @article{li2023cmmlu,
   title={CMMLU: Measuring massive multitask language understanding in Chinese},
@@ -147,7 +146,9 @@ class CMMLU(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"test/{task_name}.csv"),
+                    "filepath": os.path.join(
+                        data_dir, f"test/{task_name}.csv"
+                    ),
                 },
             ),
             datasets.SplitGenerator(

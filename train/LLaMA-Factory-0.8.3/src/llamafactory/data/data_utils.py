@@ -13,12 +13,24 @@
 # limitations under the License.
 
 from enum import Enum, unique
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, TypedDict, Union
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TypedDict,
+    Union,
+)
 
-from datasets import DatasetDict, concatenate_datasets, interleave_datasets
+from datasets import (
+    DatasetDict,
+    concatenate_datasets,
+    interleave_datasets,
+)
 
 from ..extras.logging import get_logger
-
 
 if TYPE_CHECKING:
     from datasets import Dataset, IterableDataset
@@ -47,31 +59,41 @@ class DatasetModule(TypedDict):
 
 
 def merge_dataset(
-    all_datasets: List[Union["Dataset", "IterableDataset"]], data_args: "DataArguments", seed: int
+    all_datasets: List[Union["Dataset", "IterableDataset"]],
+    data_args: "DataArguments",
+    seed: int,
 ) -> Union["Dataset", "IterableDataset"]:
     if len(all_datasets) == 1:
         return all_datasets[0]
     elif data_args.mix_strategy == "concat":
         if data_args.streaming:
-            logger.warning("The samples between different datasets will not be mixed in streaming mode.")
+            logger.warning(
+                "The samples between different datasets will not be mixed in streaming mode."
+            )
 
         return concatenate_datasets(all_datasets)
     elif data_args.mix_strategy.startswith("interleave"):
         if not data_args.streaming:
-            logger.warning("We recommend using `mix_strategy=concat` in non-streaming mode.")
+            logger.warning(
+                "We recommend using `mix_strategy=concat` in non-streaming mode."
+            )
 
         return interleave_datasets(
             datasets=all_datasets,
             probabilities=data_args.interleave_probs,
             seed=seed,
-            stopping_strategy="first_exhausted" if data_args.mix_strategy.endswith("under") else "all_exhausted",
+            stopping_strategy="first_exhausted"
+            if data_args.mix_strategy.endswith("under")
+            else "all_exhausted",
         )
     else:
         raise ValueError("Unknown mixing strategy.")
 
 
 def split_dataset(
-    dataset: Union["Dataset", "IterableDataset"], data_args: "DataArguments", seed: int
+    dataset: Union["Dataset", "IterableDataset"],
+    data_args: "DataArguments",
+    seed: int,
 ) -> "DatasetDict":
     r"""
     Splits the dataset and returns a dataset dict containing train set (required) and validation set (optional).
@@ -82,6 +104,12 @@ def split_dataset(
         train_set = dataset.skip(int(data_args.val_size))
         return DatasetDict({"train": train_set, "validation": val_set})
     else:
-        val_size = int(data_args.val_size) if data_args.val_size > 1 else data_args.val_size
+        val_size = (
+            int(data_args.val_size)
+            if data_args.val_size > 1
+            else data_args.val_size
+        )
         dataset = dataset.train_test_split(test_size=val_size, seed=seed)
-        return DatasetDict({"train": dataset["train"], "validation": dataset["test"]})
+        return DatasetDict(
+            {"train": dataset["train"], "validation": dataset["test"]}
+        )

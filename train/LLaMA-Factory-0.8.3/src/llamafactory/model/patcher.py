@@ -18,14 +18,21 @@ from typing import TYPE_CHECKING, Any, Dict
 
 import torch
 from peft import PeftModel
-from transformers import PreTrainedModel, PreTrainedTokenizerBase, is_torch_npu_available
+from transformers import (
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+    is_torch_npu_available,
+)
 from transformers.integrations import is_deepspeed_zero3_enabled
 from transformers.modeling_utils import is_fsdp_enabled
 from transformers.utils.versions import require_version
 
 from ..extras.logging import get_logger
 from ..extras.misc import infer_optim_dtype
-from .model_utils.attention import configure_attn_implementation, print_attn_implementation
+from .model_utils.attention import (
+    configure_attn_implementation,
+    print_attn_implementation,
+)
 from .model_utils.checkpointing import prepare_model_for_training
 from .model_utils.embedding import resize_embedding_layer
 from .model_utils.longlora import configure_longlora
@@ -34,8 +41,10 @@ from .model_utils.packing import configure_packing
 from .model_utils.quantization import configure_quantization
 from .model_utils.rope import configure_rope
 from .model_utils.valuehead import prepare_valuehead_model
-from .model_utils.visual import autocast_projector_dtype, configure_visual_model
-
+from .model_utils.visual import (
+    autocast_projector_dtype,
+    configure_visual_model,
+)
 
 if TYPE_CHECKING:
     from transformers import PretrainedConfig, PreTrainedTokenizer
@@ -63,10 +72,15 @@ def patch_config(
         if model_args.infer_dtype != "auto" and not is_trainable:
             model_args.compute_dtype = getattr(torch, model_args.infer_dtype)
         else:
-            model_args.compute_dtype = infer_optim_dtype(model_dtype=getattr(config, "torch_dtype", None))
+            model_args.compute_dtype = infer_optim_dtype(
+                model_dtype=getattr(config, "torch_dtype", None)
+            )
 
     if is_torch_npu_available():
-        use_jit_compile = os.environ.get("JIT_COMPILE", "0").lower() in ["true", "1"]
+        use_jit_compile = os.environ.get("JIT_COMPILE", "0").lower() in [
+            "true",
+            "1",
+        ]
         torch.npu.set_compile_mode(jit_compile=use_jit_compile)
 
     configure_attn_implementation(config, model_args, is_trainable)
@@ -83,25 +97,43 @@ def patch_config(
 
     if getattr(config, "model_type", None) == "qwen":
         setattr(config, "use_flash_attn", model_args.flash_attn == "fa2")
-        for dtype_name, dtype in [("fp16", torch.float16), ("bf16", torch.bfloat16), ("fp32", torch.float32)]:
+        for dtype_name, dtype in [
+            ("fp16", torch.float16),
+            ("bf16", torch.bfloat16),
+            ("fp32", torch.float32),
+        ]:
             setattr(config, dtype_name, model_args.compute_dtype == dtype)
 
-    if getattr(config, "model_type", None) == "qwen2" and is_trainable and model_args.flash_attn == "fa2":
-        setattr(config, "use_cache", False)  # qwen2 does not support use_cache when using flash attn
+    if (
+        getattr(config, "model_type", None) == "qwen2"
+        and is_trainable
+        and model_args.flash_attn == "fa2"
+    ):
+        setattr(
+            config, "use_cache", False
+        )  # qwen2 does not support use_cache when using flash attn
 
     if getattr(config, "model_type", None) == "chatglm":
-        require_version("transformers==4.41.2", "To fix: pip install transformers==4.41.2")
+        require_version(
+            "transformers==4.41.2", "To fix: pip install transformers==4.41.2"
+        )
 
     # deepspeed zero3 is not compatible with low_cpu_mem_usage
-    init_kwargs["low_cpu_mem_usage"] = model_args.low_cpu_mem_usage and (not is_deepspeed_zero3_enabled())
+    init_kwargs["low_cpu_mem_usage"] = model_args.low_cpu_mem_usage and (
+        not is_deepspeed_zero3_enabled()
+    )
 
     # cast data type of the model if:
     # 1. not deepspeed zero3 and not fsdp (keep zero3 or fsdp in float32)
     # 2. quantization_bit is not None (qlora)
-    if (not is_deepspeed_zero3_enabled() and not is_fsdp_enabled()) or model_args.quantization_bit is not None:
+    if (
+        not is_deepspeed_zero3_enabled() and not is_fsdp_enabled()
+    ) or model_args.quantization_bit is not None:
         init_kwargs["torch_dtype"] = model_args.compute_dtype
 
-        if init_kwargs["low_cpu_mem_usage"]:  # device map requires low_cpu_mem_usage=True
+        if init_kwargs[
+            "low_cpu_mem_usage"
+        ]:  # device map requires low_cpu_mem_usage=True
             if "device_map" not in init_kwargs and model_args.device_map:
                 init_kwargs["device_map"] = model_args.device_map
 
@@ -154,21 +186,41 @@ def patch_valuehead_model(model: "AutoModelForCausalLMWithValueHead") -> None:
         if isinstance(self.pretrained_model, PreTrainedModel):
             self.pretrained_model.tie_weights()
 
-    def get_input_embeddings(self: "AutoModelForCausalLMWithValueHead") -> torch.nn.Module:
+    def get_input_embeddings(
+        self: "AutoModelForCausalLMWithValueHead",
+    ) -> torch.nn.Module:
         if isinstance(self.pretrained_model, PreTrainedModel):
             return self.pretrained_model.get_input_embeddings()
 
-    def get_output_embeddings(self: "AutoModelForCausalLMWithValueHead") -> torch.nn.Module:
+    def get_output_embeddings(
+        self: "AutoModelForCausalLMWithValueHead",
+    ) -> torch.nn.Module:
         if isinstance(self.pretrained_model, PreTrainedModel):
             return self.pretrained_model.get_output_embeddings()
 
-    def create_or_update_model_card(self: "AutoModelForCausalLMWithValueHead", output_dir: str) -> None:
+    def create_or_update_model_card(
+        self: "AutoModelForCausalLMWithValueHead", output_dir: str
+    ) -> None:
         if isinstance(self.pretrained_model, PeftModel):
             self.pretrained_model.create_or_update_model_card(output_dir)
 
-    ignore_modules = [name for name, _ in model.named_parameters() if "pretrained_model" in name]
+    ignore_modules = [
+        name
+        for name, _ in model.named_parameters()
+        if "pretrained_model" in name
+    ]
     setattr(model, "_keys_to_ignore_on_save", ignore_modules)
     setattr(model, "tie_weights", MethodType(tie_weights, model))
-    setattr(model, "get_input_embeddings", MethodType(get_input_embeddings, model))
-    setattr(model, "get_output_embeddings", MethodType(get_output_embeddings, model))
-    setattr(model, "create_or_update_model_card", MethodType(create_or_update_model_card, model))
+    setattr(
+        model, "get_input_embeddings", MethodType(get_input_embeddings, model)
+    )
+    setattr(
+        model,
+        "get_output_embeddings",
+        MethodType(get_output_embeddings, model),
+    )
+    setattr(
+        model,
+        "create_or_update_model_card",
+        MethodType(create_or_update_model_card, model),
+    )

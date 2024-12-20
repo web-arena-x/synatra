@@ -14,10 +14,11 @@
 
 import os
 
-from transformers.utils import is_flash_attn_2_available, is_torch_sdpa_available
-
 from llamafactory.train.test_utils import load_infer_model
-
+from transformers.utils import (
+    is_flash_attn_2_available,
+    is_torch_sdpa_available,
+)
 
 TINY_LLAMA = os.environ.get("TINY_LLAMA", "llamafactory/tiny-random-Llama-3")
 
@@ -44,4 +45,7 @@ def test_attention():
         model = load_infer_model(flash_attn=requested_attention, **INFER_ARGS)
         for module in model.modules():
             if "Attention" in module.__class__.__name__:
-                assert module.__class__.__name__ == llama_attention_classes[requested_attention]
+                assert (
+                    module.__class__.__name__
+                    == llama_attention_classes[requested_attention]
+                )

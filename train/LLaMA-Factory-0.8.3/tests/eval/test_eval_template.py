@@ -35,7 +35,9 @@ def test_eval_template_en():
         "answer": "C",
     }
     template = get_eval_template(name="en")
-    messages = template.format_example(example, support_set=support_set, subject_name="SubName")
+    messages = template.format_example(
+        example, support_set=support_set, subject_name="SubName"
+    )
     assert messages == [
         {
             "role": "user",
@@ -73,7 +75,9 @@ def test_eval_template_zh():
         "answer": "C",
     }
     template = get_eval_template(name="zh")
-    messages = template.format_example(example, support_set=support_set, subject_name="主题")
+    messages = template.format_example(
+        example, support_set=support_set, subject_name="主题"
+    )
     assert messages == [
         {
             "role": "user",

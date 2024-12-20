@@ -13,13 +13,6 @@ from typing import Any, TypedDict, Union, cast
 import numpy as np
 import numpy.typing as npt
 from beartype import beartype
-from gymnasium import spaces
-from playwright._impl._api_structures import ViewportSize
-from playwright.async_api import BrowserContext as ABrowserContext
-from playwright.async_api import Locator as ALocator
-from playwright.async_api import Page as APage
-from playwright.sync_api import BrowserContext, Locator, Page
-
 from browser_env.constants import (
     ASCII_CHARSET,
     FREQ_UNICODE_CHARSET,
@@ -40,6 +33,12 @@ from browser_env.constants import (
     RolesType,
 )
 from browser_env.processors import ObservationProcessor
+from gymnasium import spaces
+from playwright._impl._api_structures import ViewportSize
+from playwright.async_api import BrowserContext as ABrowserContext
+from playwright.async_api import Locator as ALocator
+from playwright.async_api import Page as APage
+from playwright.sync_api import BrowserContext, Locator, Page
 
 
 class ParsedPlaywrightCode(TypedDict):

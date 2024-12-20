@@ -15,10 +15,8 @@
 import os
 
 import torch
-
 from llamafactory.extras.misc import get_current_device
 from llamafactory.train.test_utils import load_train_model
-
 
 TINY_LLAMA = os.environ.get("TINY_LLAMA", "llamafactory/tiny-random-Llama-3")
 
@@ -40,14 +38,20 @@ TRAIN_ARGS = {
 
 
 def test_checkpointing_enable():
-    model = load_train_model(disable_gradient_checkpointing=False, **TRAIN_ARGS)
-    for module in filter(lambda m: hasattr(m, "gradient_checkpointing"), model.modules()):
+    model = load_train_model(
+        disable_gradient_checkpointing=False, **TRAIN_ARGS
+    )
+    for module in filter(
+        lambda m: hasattr(m, "gradient_checkpointing"), model.modules()
+    ):
         assert getattr(module, "gradient_checkpointing") is True
 
 
 def test_checkpointing_disable():
     model = load_train_model(disable_gradient_checkpointing=True, **TRAIN_ARGS)
-    for module in filter(lambda m: hasattr(m, "gradient_checkpointing"), model.modules()):
+    for module in filter(
+        lambda m: hasattr(m, "gradient_checkpointing"), model.modules()
+    ):
         assert getattr(module, "gradient_checkpointing") is False
 
 
@@ -60,6 +64,8 @@ def test_upcast_layernorm():
 
 def test_upcast_lmhead_output():
     model = load_train_model(upcast_lmhead_output=True, **TRAIN_ARGS)
-    inputs = torch.randn((1, 16), dtype=torch.float16, device=get_current_device())
+    inputs = torch.randn(
+        (1, 16), dtype=torch.float16, device=get_current_device()
+    )
     outputs: "torch.Tensor" = model.get_output_embeddings()(inputs)
     assert outputs.dtype == torch.float32

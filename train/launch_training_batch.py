@@ -1,20 +1,43 @@
-import os
-import subprocess
 import argparse
-import time
 import concurrent.futures
+import os
 import random
+import subprocess
+import time
 
-def create_train_script_deepspeed(dset_name, num_gpu, num_node, gradient_accum_step, per_dev_batch, seed, lr, train_size, epoch, folder, ds_config,mem,gpu,partition,include,base_model_path,template,warm_up):
+
+def create_train_script_deepspeed(
+    dset_name,
+    num_gpu,
+    num_node,
+    gradient_accum_step,
+    per_dev_batch,
+    seed,
+    lr,
+    train_size,
+    epoch,
+    folder,
+    ds_config,
+    mem,
+    gpu,
+    partition,
+    include,
+    base_model_path,
+    template,
+    warm_up,
+):
     batch_size = num_gpu * per_dev_batch * gradient_accum_step
-    k = int(train_size)//1000
+    k = int(train_size) // 1000
     rand_int = random.randint(0, 9)
-    base_model_path_lines = base_model_path.split('/')
+    base_model_path_lines = base_model_path.split("/")
     for i in range(len(base_model_path_lines)):
-        if i < len(base_model_path_lines)-1 and base_model_path_lines[i] == 'ckpts':
-            model_name = base_model_path_lines[i+1]
+        if (
+            i < len(base_model_path_lines) - 1
+            and base_model_path_lines[i] == "ckpts"
+        ):
+            model_name = base_model_path_lines[i + 1]
             break
-    train_string = f'''#!/bin/bash
+    train_string = f"""#!/bin/bash
 
 #SBATCH --job-name=cl_{dset_name}_{lr}_b{batch_size}s{seed}
 #SBATCH --output=cl_{dset_name}_{lr}_b{batch_size}s{seed}.out
@@ -72,41 +95,58 @@ WANDB__SERVICE_WAIT=500 WANDB_PROJECT=WANDB_PROJECT WANDB_ENTITY=WANDB_ENTITY WA
 
 echo "exit code: $?"
 
-    '''
-    with open(f'./train_script/tmp_{dset_name}_{model_name}_{seed}.sh', 'w') as file:
+    """
+    with open(
+        f"./train_script/tmp_{dset_name}_{model_name}_{seed}.sh", "w"
+    ) as file:
         file.write(train_string)
     return
 
 
 dset = [
-    ['YOUR_TRAINING_SET',99920],
+    ["YOUR_TRAINING_SET", 99920],
 ]
 
 for seed in [87]:
-    for dset_name,train_size in dset:
+    for dset_name, train_size in dset:
         dset_name = dset_name
         num_gpu = 4
         num_node = 1
-        partition = 'general'
-        include = 'YOUR_GPU_SLOTS'
-        gpu = 'A100'
+        partition = "general"
+        include = "YOUR_GPU_SLOTS"
+        gpu = "A100"
         per_dev_batch = 6
         gradient_accum_step = 2
-        lr  = '4e-5'
-        warm_up = '--warmup_ratio 0.03'
+        lr = "4e-5"
+        warm_up = "--warmup_ratio 0.03"
         seed = seed
         train_size = train_size
-        folder = 'code'
+        folder = "code"
         epoch = 5
-        mem = '1000G'
-        ds_config = 'YOUR_DEEPSPEED_CONFIG'
-        base_model_path = 'YOUR_BASE_MODEL_PATH'
-        template = 'llama2'
+        mem = "1000G"
+        ds_config = "YOUR_DEEPSPEED_CONFIG"
+        base_model_path = "YOUR_BASE_MODEL_PATH"
+        template = "llama2"
         # template = 'llama3'
-        accelerate_config = 'accelerate_single_config.yaml'
-        create_train_script_deepspeed(dset_name, num_gpu, num_node, gradient_accum_step, per_dev_batch, seed, lr, train_size, epoch, folder, ds_config,mem,gpu,partition,include,base_model_path,template,warm_up)
-        subprocess.run(['sbatch', f'./train_script/tmp_{dset_name}_{seed}.sh'])
-
-
-
-        
+        accelerate_config = "accelerate_single_config.yaml"
+        create_train_script_deepspeed(
+            dset_name,
+            num_gpu,
+            num_node,
+            gradient_accum_step,
+            per_dev_batch,
+            seed,
+            lr,
+            train_size,
+            epoch,
+            folder,
+            ds_config,
+            mem,
+            gpu,
+            partition,
+            include,
+            base_model_path,
+            template,
+            warm_up,
+        )
+        subprocess.run(["sbatch", f"./train_script/tmp_{dset_name}_{seed}.sh"])
