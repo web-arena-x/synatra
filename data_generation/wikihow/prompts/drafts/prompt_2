@@ -1,0 +1,71 @@
+# Guidelines for Refining Browser Task Instructions for Kids:
+While many online resources cater to adults, they often lack the specificity and clarity needed for young minds. We aim to distill these articles into easily understandable steps tailored for primary school students.
+
+1. Stay focused: Stick strictly to the primary topic. You can ignore any secondary topics that are not directly related to the primary topic.
+2. Standardize to Chrome browser: Adapt all examples to fit the context of the Chrome browser on a laptop. If the original article is based on other platforms, like mobile phones, draw on your expertise to translate those instructions to a Chrome browser setting.
+3. Incorporate concrete examples: Instead of using generic descriptions, provide specific examples. For every action mentioned, specify actual values for its arguments. Think of real-world scenarios that readers can easily relate to.
+4. Provide clear, step-by-step browser commands: Explicitly mention the following commands in your refined article:
+    - Go to urls
+    - Click some web elements
+    - Type some text to some web elements
+    - Press key or key combinations
+    - Scroll the page up or down
+    - Open a new tab
+    - Switch to another opened tab
+    - Close a tab
+    - Go back to the previous page
+    - Go forward to the next page
+
+# Example
+Here is an example of an article and its implementation.
+
+## Task
+Choose recipients for an email in Gmail
+
+## Original article
+Open Gmail. Go to https://www.gmail.com/ in your computer's web browser. This will open your Gmail inbox if you're logged in.
+If you aren't logged into your Gmail account, enter your email address and password when prompted.
+
+Click Compose. It's in the upper-left side of your Gmail inbox. Doing so opens a "New Message" window in the lower-right corner of the page.If you're using the old version of Gmail, you'll click COMPOSE here instead.
+
+Enter the other person's email address. Click the "To" or "Recipients" text box at the top of the New Message window, then type in the email address of the person to whom you want to send your email. To add multiple email addresses, type in the first email address, press Tab, and repeat with the other email addresses. If you want to CC or BCC someone on the email, click either the Cc link or the Bcc link in the far-right side of the "To" text field, then type the email address you want to CC or BCC into the "Cc" or "Bcc" text field, respectively.
+
+## Refined article
+This article teaches how to choose recipients for an email in Gmail. I will stick with the guidelines for the refinement. Let's review the guideline one by one.
+#1: This article already focuses on the primary topic of sending an email using Gmail. Hence, I will skip this guideline.
+#2: This article describes the task in a browser which is the desired platform. Hence, I will skip this guideline.
+#3: There are a few places that are generic, I will describe a very concrete scenario. Here is the scenerio: first, the user already logged in to Gmail. Second, the user wants to send an email to "healthy_life@gmail.com". Thrid, the user wants to CC ""alex_wang@hotmail.com". Finally, there is no BCC recipient.
+Now I will follow #4 to provide clear, step-by-step browser commands:
+1. Go to Gmail website https://www.gmail.com/
+2. Click the "Compose" button
+3. Type the email address of the recipient "healthy_life@gmail.com" in the "To" field
+4. Click "Expand More" button to expland the "To" field
+5. Type the email address of the CC recipient "alex_wang@hotmail.com"
+
+# Your task
+Now it is your turn to refine the articles
+
+## Task
+Cancel an Amazon Order After It Ships Using the App
+
+## Original article
+Open your Amazon app. You can cancel an Amazon order that has already been shipped straight from your mobile device. Open your Amazon app to get started.
+
+Visit the "Your Orders" section of the app. Tap the profile icon on the bottom of your screen, represented by an image of a person. Then, tap "Your Orders" at the top your screen.
+
+Select the item you want to cancel. The "Your Orders" screen offers a list of all your Amazon orders, both pending and delivered. Choose the order that you want to cancel (in this case, one that has already been shipped) and click on it.
+
+Tap "Request cancellation." If your order has already been dispatched, you cannot automatically cancel it. Instead, you must request cancellation.
+While Amazon does not technically guarantee that your request will be approved, you are likely to receive a refund as long as you provide a reason for your request.
+If you are attempting to cancel an order that has not yet shipped, you will be offered "Cancel Item" as an option, and can simply tap that to complete your cancellation and receive a refund.
+
+Choose a cancellation reason from the drop-down menu. Amazon does not require a reason for cancellation, but providing a reason ensures that your request will be approved. Amazon's menu of options covers just about every reason you might want to cancel, such as an incorrect shipping address or the item being too expensive.
+The "Request cancellation" list will include any incomplete orders, so be sure to check the box next to any items for which you want to request cancellation.
+
+Confirm your request for cancellation. Once you have chosen a reason for cancellation, you can click the big yellow Request cancellation button beneath it.
+
+Wait for your refund. Amazon will make a decision on your request almost immediately, and will refund the cost of your order to your original form of payment. The processing speed of your reimbursement depends upon what form of payment you used.
+If you still receive your order in the mail, be sure to refuse it. If you still accept the order, Amazon may not approve your request.
+If you ordered an item on Amazon from a third-party seller, your request for cancellation may take a bit longer to review. The decision to accept the cancellation must be made by the seller, and not Amazon.
+
+## Refined article

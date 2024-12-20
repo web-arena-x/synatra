@@ -1,0 +1,251 @@
+v1:
+  note: working version for gpt-3.5
+  system: You are a helpful assistant
+  user_message: |
+    Break down the articles into a sequence of steps. In every step, provide a concrete example that reflects a real execution. This example should clearly state the concrete value of an option you choose, the precise content you type, or the concrete description of the element you interact with in that step. Refrain from using broad descriptions. In addition, the example should be consistant across steps.
+
+    Demonstrations:
+    Step: Specify a destination file to copy the file to.
+    Example: Click on the "Browse" button next to the "Destination" field. Choose the the folder "recover" on your computer. Enter the desired file name "recoverd_video" for the destination file and click "Save".
+
+    Step: Enter a new address.
+    Example: Click the drop-down menu at the top to and click to select your country "United States". Then, enter the new address "1829 Elm St.Springfield, IL 62704" to the address section.
+
+    Step: Download fonts from the internet.
+    Example: Go to "www.google.com". Type "free front" in the search box and press Enter. Click on a website called "FontSpace." Choose a font called "Bebas Neue." Click on the "Download" button to download the font file.
+
+    Step: Select your MSG file
+    Example: Click and open the folder "project_0912" where your MSG file is stored on your computer. Click once on the MSG file "xjgfx.msg" to select it
+
+    Step: Click the video you want to delete.
+    Example: Find the video "Vocation in Hawaii" and click on it.
+
+    Article:
+    __article__
+v2:
+  note: experimenting version for gpt-4 (zero-shot), step + example
+  system: You are a helpful assistant
+  user_message: |
+    You are given an article about performing a task in a web browser. Your goal is to make this article as accessible as possible to a user who is not familiar with the functionalities of the websites and the task at all. You will
+    - assume you start with a blank page in a web browser.
+    - break down the article into a sequence of steps.
+    - in every step, provide a concrete example that reflects a real execution. This example should clearly describe the element you are interacting with, the concrete value of an element you select, the precise content you type and other details. Never use broad descriptions.
+    - make sure that the example is consistent across steps.
+
+    Your response should follow the following format:
+    step <step index>: <description of the step>
+    example <step index>: <example of the step>
+
+    Here is the article:
+    __article__
+v3:
+  note: experimenting version for gpt-4 (zero-shot), step + example + code
+  is_final: True
+  system: You are a helpful assistant
+  user_message: |
+    You are given an article about performing a task in a web browser. Your goal is to make this article as accessible as possible to a user who is not familiar with the functionalities of the websites and the task at all. You will
+    - Assume you start with a blank page in a web browser.
+    - Break down the article into a sequence of steps.
+    - In every step, provide a concrete example that reflects a real execution. This example should clearly describe the element you are interacting with, the concrete value of an element you select, the precise content you type and other details. Never use broad descriptions.
+    - If there are different scenarios in a step, use your own judgement to choose one scenario to describe.
+    - The example should be creative and realistic, try to avoid boilerplate text such as email@example.com
+    - Make sure that the example is consistent across steps.
+
+    Following the concrete example, provide the sequence of Python API calls corresponding to the example. The APIs are as follows:
+    click(element: str) - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element.
+    hover(element: str) - Hover over an element.
+    click_and_type(element: str, content: str) - Click and type `content` into an `element`.
+    key_press(key_comb: str) - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explict specification in the article.
+    goto(url: str) - Navigate to `url`
+    go_back(): go back to the previous page.
+    go_forward(): go forward to the next page.
+    new_tab(): open a new tab.
+    close_tab(): close the current tab.
+    switch_tab(tab_index: int): switch to the tab with index `tab_index`, starting from 0.
+
+    Your response should follow the following format:
+    Step <step index>: <description of the step>
+    Example <step index>: <example of the step>
+    APIs <step index>: ```<sequence of APIs, seperated by new line>```
+
+    Here is the article:
+    __article__
+v4:
+  note: experimenting version for gpt-4 (zero-shot), step + example + code + summary of the task. title is not accurate for step 2
+  is_final: True
+  system: You are a helpful assistant
+  user_message: |
+    You are given an article about performing a task in a web browser. Your goal is to make this article as accessible as possible to a user who is not familiar with the functionalities of the websites and the task at all. You will
+    - Assume you start with a blank page in a web browser.
+    - Break down the article into a sequence of steps.
+    - In every step, provide a concrete example that reflects a real execution. This example should clearly describe the element you are interacting with, the concrete value of an element you select, the precise content you type and other details. Never use broad descriptions.
+    - If there are different scenarios in a step, use your own judgement to choose one scenario to describe.
+    - The example should be creative and realistic, try to avoid boilerplate text such as email@example.com
+    - Make sure that the example is consistent across steps.
+
+    Following the concrete example, provide the sequence of Python API calls corresponding to the example. The APIs are as follows:
+    `click(element: str)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element.
+    `hover(element: str)` - Hover over an element.
+    `click_and_type(element: str, content: str)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+
+    Your response should follow the following format:
+    Step <step index>: <description of the step>
+    Example <step index>: <example of the step>
+    APIs <step index>: ```<sequence of APIs, separated by new line>```
+
+    At the end of the response, assuming you are asking your assistant to perform the task for you, write down your instructions to your assistant. Your assistant is very familiar with using a browser for various tasks, so you only need to provide the necessary details. Start with "Command to assistant:"
+
+    Here is the article:
+    __article__
+v5:
+  note: based on v4, add rule to stick with chrome browswer and skip login. use new format of python directly for easier parsing.
+  is_final: True
+  system: You are a helpful assistant
+  user_message: |
+    # Task overview
+    You are given an article about performing a task in a web browser. Your goal is to make this article as accessible as possible to a user who is not familiar with the functionalities of the websites and the task at all.
+
+    # Guideline
+    Read the article carefully and follow the instructions below:
+
+    - Assume you start with the home page of the web application, skip the initial `goto` action.
+    - Break down the article into a sequence of steps.
+    - In every step, provide a concrete example that reflects a real execution. This example should clearly describe the element you are interacting with, the concrete value of an element you select, the precise content you type and other details. Never use broad descriptions. The example should be creative and realistic, avoid boilerplate text such as email@example.com. Make sure that the example is consistent across steps.
+    - Following the concrete example, provide the Python API call corresponding to the example.
+    - Group all API calls into multiple sub-sections, each section corresponds to a logical and actionable sub-task.
+
+    There are special scenarios and here are the ways to deal with them:
+    - If the article describes multiple scenarios or multiple ways to approach the same goal, you can use your own judgement to choose the most common one to describe.
+    - If there are repeated steps, make sure to unroll the steps and describe each of them canonically.
+    - Always assume you perform this task using a web browser, if the original article uses a desktop app or mobile phone app, simply assume the corresponding web app exists. Hence, any steps regarding installation or login can be skipped.
+
+    # APIs
+    The APIs are as follows:
+    `click(element_desc: str)` - Click on an element. `element_desc` is the the displayed text or the most representative attribute of the HTML element.
+    `hover(element_desc: str)` - Hover over an element.
+    `click_and_type(element_desc: str, content: str)` - Click an input element and type `content` into it.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+
+    # Response format
+    Your response should follow the following format.
+
+    ```python
+    # sub-task <index>: <sub-task description>
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    <repeat for all sub tasks>
+
+    # task: <task command given to a smart assistant, only the necessary details on expectation are needed.>
+    ```
+
+    # Article
+    __article__
+
+v5_batch:
+  note: see if batch generation works
+  is_final: True
+  system: You are a helpful assistant
+  user_message: |
+    # Task overview
+    You are given an article about performing a task in a web browser. Your goal is to make this article as accessible as possible to a user who is not familiar with the functionalities of the websites and the task at all.
+
+    # Guideline
+    Read the article carefully and follow the instructions below:
+
+    - Assume you start with the home page of the web application, skip the initial `goto` action.
+    - Break down the article into a sequence of steps.
+    - In every step, provide a concrete example that reflects a real execution. This example should clearly describe the element you are interacting with, the concrete value of an element you select, the precise content you type and other details. Never use broad descriptions. The example should be creative and realistic, avoid boilerplate text such as email@example.com. Make sure that the example is consistent across steps.
+    - Following the concrete example, provide the Python API call corresponding to the example.
+    - Group all API calls into multiple sub-sections, each section corresponds to a logical and actionable sub-task.
+
+    There are special scenarios and here are the ways to deal with them:
+    - If the article describes multiple scenarios or multiple ways to approach the same goal, you can use your own judgement to choose the most common one to describe.
+    - If there are repeated steps, make sure to unroll the steps and describe each of them canonically.
+    - Always assume you perform this task using Chrome, if the original article uses a desktop app or mobile phone app, simply assume the equivelent web application exists. Hence, make sure you skip any installation or login steps.
+
+    # APIs
+    The APIs are as follows:
+    `click(element: str)` - Click on an element. `element` is the the displayed text or the most representative attribute of the HTML element.
+    `hover(element: str)` - Hover over an element.
+    `click_and_type(element: str, content: str)` - Click an input element and type `content` into it.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question. If the task does not require an answer, simply put `stop()`
+
+    # Response format
+    Your response should follow the following format. You will repeat the format three times with different examples and different values in APIs.
+
+    ```python
+    # scenario 1
+    # sub-task <index>: <sub-task description>
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    <repeat for all sub tasks>
+
+    <make sure to have a stop action at the end>
+
+    # task: <task command given to a smart assistant, only the necessary details on expectation are needed.>
+    ```
+
+    ```python
+    # scenario 2
+    # <If the values of APIs are fixed due to the nature of the article, simply put SKIP here and stop generation>
+    # sub-task <index>: <sub-task description>
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    <repeat for all sub tasks>
+
+    <make sure to have a stop action at the end>
+
+    # task: <task command given to a smart assistant, only the necessary details on expectation are needed.>
+    ```
+
+    ```python
+    # scenario 3
+    # <If the values of APIs are fixed due to the nature of the article, simply put SKIP here and stop generation>
+    # sub-task <index>: <sub-task description>
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    # step <index>: <the real execution with concrete values for each argument>
+    <API, do not skip the keys in the API calls>
+
+    <repeat for all sub tasks>
+
+    <make sure to have a stop action at the end>
+
+    # task: <task command given to a smart assistant, only the necessary details on expectation are needed.>
+    ```
+
+    # Article
+    __article__

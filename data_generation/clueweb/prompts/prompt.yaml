@@ -1,0 +1,486 @@
+opus_v2:
+  note: start from home page, not empty tab
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose a browser-based task that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `hover(element: str, element_id: int=0)` - Hover over an element.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `scroll(direction=down|up)` - Scroll the page up or down.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the current state.
+    2. Propose about a task that has this web page as one of its steps. Be creative.
+    3. There are roughly __history_length__ steps before the current state. You should write down each action in details. These actions may be performed in other web pages or in the same web page. They must be one of the actions in the action space. You can omit the `elemement_id` if they are not in the current page. There should be exactly ONE action at each step, if you want to press a button after typing, do it in a separate step. DO NOT give goto() or new_tab() as first step.
+    4. Describe the next action that you would take to accomplish the task. It is important that you understand the role and the attributes of the element in your next action so that the action can be appropriately applied. You MUST include `element_id` in your next action. Any `element_id` MUST come from the given Accessibility Tree. DO NOT give next action whose `element_id` isn't part of the given Accessibility Tree.
+
+    ## Format of the response
+    Your response should follow the following format:
+    <your analysis and understanding about the web page and the task you will propose>
+    ```python
+    # task: <your proposed task>
+
+    # --------------------
+    # past actions
+    # step <step index>: <a brief description>
+    <action>
+    ...
+
+    # --------------------
+    # next action: <a brief description>
+    <action>
+    ```
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+sonnet_v1:
+  note: start from home page, not empty tab
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose a browser-based task that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `hover(element: str, element_id: int=0)` - Hover over an element.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the current state.
+    2. Propose about a task that has this web page as one of its steps. Be creative.
+    3. There are roughly __history_length__ steps before the current state. You should write down each action in details. These actions may be performed in other web pages or in the same web page. They must be one of the actions in the action space. You can omit the `elemement_id` if they are not in the current page. There should be exactly ONE action at each step, if you want to press a button after typing, do it in a separate step. DO NOT give goto() or new_tab() as first step.
+    4. Propose three possible next actions you would take. It is important that you understand the role and the attributes of the element in your next action so that the action can be appropriately applied. You MUST include `element_id` in your next action. Any `element_id` MUST come from the given Accessibility Tree. If you cannot find "Add to Cart" in the Accessibility Tree, DO NOT click it!
+
+    ## Format of the response
+    Your response should follow the following format:
+    <your analysis and understanding about the web page and the task you will propose>
+    ```python
+    # task: <your proposed task>
+
+    # --------------------
+    # past actions
+    # step <step index>: <a brief description>
+    <action>
+    ...
+
+    # --------------------
+    # next action option 1: <a brief description>
+    <action>
+    # next action option 2: <a brief description>
+    <action>
+    # next action option 3: <a brief description>
+    <action>
+    ```
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+v_stop_ans:
+  note: Generate stop action
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose a browser-based task that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `hover(element: str, element_id: int=0)` - Hover over an element.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the current state.
+    2. Propose about a task that could be answered by existing information of the page. Be creative.
+    3. Starting from an empty tab, there are roughly __history_length__ steps before the final state. You should write down each action in the details. These actions may be performed in other web pages or in the same web page. You can omit the `elemement_id` if they are not in the current page.
+    4. Describe the action that you would take to accomplish the task. It would be a stop() action with the answer string in the bracket. The answer string would need to come from existing content of the current page. The answer string needs to answer the task. The answer string can not be an action.
+
+    ## Format of the response
+    Your response should follow the following format:
+    <your analysis and understanding about the web page and the task you will propose>
+    ```python
+    # task: <your proposed task>
+
+    # --------------------
+    # past actions
+    # step <step index>: <a brief description>
+    <action>
+    ...
+
+    # --------------------
+    # stop action: <a brief description>
+    stop(answer string)
+    ```
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+v_stop_empty:
+  note: Generate stop action
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose a browser-based task that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `hover(element: str, element_id: int=0)` - Hover over an element.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop()` - Stop the task as the task has been completed.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the current state.
+    2. Propose a task that would have the current page as the final state if the task is finished. It must be a task that if someone has done all the actions, he will be looking at the current page. Be creative.
+    3. Starting from an empty tab, there are roughly __history_length__ steps before the current final state. You should write down each action in the details. These actions may be performed in other web pages. You can omit the `elemement_id` if they are not in the current page.
+    4. No futher action should be done to the current page to complete the task.
+
+    ## Format of the response
+    Your response should follow the following format:
+    <your analysis and understanding about the web page and the task you will propose>
+    ```python
+    # task: <your proposed task>
+
+    # --------------------
+    # past actions
+    # step <step index>: <a brief description>
+    <action>
+    ...
+
+    # --------------------
+    # stop action: <a brief description>
+    stop()
+    ```
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+v_stop_action_complete_empty:
+  note: Generate stop action
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose a browser-based task that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `hover(element: str, element_id: int=0)` - Hover over an element.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop()` - Stop the task as the task has been completed.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the current state.
+    2. Propose a task that would have the current page as the final state. It must be a task that if someone has completed all the actions, he will be at the current page. Be creative.
+    3. The task cannot be related to learn or explore some information.
+    4. Starting from the home page of the current website, there are roughly __history_length__ steps before the current final state. You should write down each action in the details. These actions may be performed in other web pages. You can omit the `elemement_id` if they are not in the current page.
+    5. No futher action should be done to the current page to complete the task.
+
+    ## Format of the response
+    Your response should follow the following format:
+    <your analysis and understanding about the web page and the task you will propose>
+    ```python
+    # task: <your proposed task>
+
+    # --------------------
+    # past actions
+    # step <step index>: <a brief description>
+    <action>
+    ...
+
+    # --------------------
+    # stop action: <a brief description>
+    stop()
+    ```
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+all_in_one_v6:
+  note: Remove hover, minor wording revision
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose creative and diverse browser-based tasks that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `click_and_type(element: str, content: str, element_id: int)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str='')` - The task is completed. If the task is to seek information, include the answer as a string. Otherwise, leave it empty.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the the domain of the web page.
+    2. Brainstorm __num_of_tasks__ task categories that could be performed the website. Be creative.
+    3. For each task category, propose a concrete task that has this web page as one of its steps. You want the concrete task to be unambiguous and clear so that no further clarification is needed to perform the task.
+    4. Given a concrete task, you are ask to come up with the past actions that leads to the current page, as well as the next action.
+      * Requirement for past actions: You should write down each past action in the details. You want to group all actions into multiple sub-sections, each section corresponds to a logical and actionable sub-task. The next action could start with a new sub-task. You can omit the `elemement_id` if they are not in the current page. There should only be one action at each step. DO NOT give goto() or new_tab() as first step.
+      * Requirement for next action: Provide the reasoning behind your past actions and the progress in completing the task. Also, describe your understanding of the current page and the concrete reason to execute the next action. If the action takes an element as the argument, it is important that you understand the role and the attributes of that element so that the action can be appropriately applied. Make sure to always include the `element_id` in your next action if there is any. Any `element_id` must come from the given Accessibility Tree.
+
+    ## Format of the response
+    You are asked to provide the action sequence for __LIST_task_index_history_length__. Your answer should follow the following format:
+
+    <Analysis and understanding about the domain and the concrete content of the web page>
+    <The list of __num_of_tasks__ creative task categories>
+    <The concrete tasks for task category __LIST_task_index__. Remember, a concrete task needs to include concrete details so that no further clarification is required when performing the task. Use imperative sentences.>
+
+    __batch_action_template__
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+batch_template_v1:
+  note: batch template
+  message: |
+    ```python
+    # task: <repeat concrete task #__sample_task_index__>
+
+    # --------------------
+    # past actions (history)
+    __history_template__
+
+    # --------------------
+    __next_is_subtask_start__
+    # next action
+    # step <index>: <summarize the progress so far and analyze the current state of the web page. Provide the concrete reason to perform the next action>
+    <action, use keyword arguments>
+    # step summary: <brief step description>
+    ```
+
+all_in_one_v6_type:
+  note: Inherent from v6, target at type action only
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose creative and diverse browser-based tasks that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the the domain of the web page.
+    2. Brainstorm __num_of_tasks__ task categories that could be performed the website. Be creative.
+    3. For each task category, propose a concrete task that has this web page as one of its steps and the next step is `click_and_type` to element with id __element_id__. You want the concrete task to be unambiguous and clear so that no further clarification is needed to perform the task.
+    4. Given a concrete task, you are ask to come up with the past actions that leads to the current page, as well as the next action.
+      * Requirement for past actions: You should write down each past action in the details. You want to group all actions into multiple sub-sections, each section corresponds to a logical and actionable sub-task. The next action could start with a new sub-task. You can omit the `elemement_id` if they are not in the current page. There should only be one action at each step. DO NOT give goto() or new_tab() as first step.
+      * Requirement for next action:
+        * The `element_id` has been assigned.
+        * Provide the reasoning behind your past actions and the progress in completing the task. Describe your understanding of the current page and the concrete reason to execute the next action.
+        * The `content` is concrete, rather than boilerplate or placeholders.
+
+    ## Format of the response
+    You are asked to provide the action sequence for __LIST_task_index_history_length__. Your answer should follow the following format:
+
+    <Analysis and understanding about the domain and the concrete content of the web page>
+    <The list of __num_of_tasks__ creative task categories>
+    <The concrete tasks for task category __LIST_task_index__. Remember, a concrete task needs to include concrete details so that no further clarification is required when performing the task. Use imperative sentences.>
+
+    __batch_action_template__
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+batch_template_v1_type:
+  note: add type
+  message: |
+    ```python
+    # task: <repeat concrete task #__sample_task_index__>
+
+    # --------------------
+    # past actions (history)
+    __history_template__
+
+    # --------------------
+    __next_is_subtask_start__
+    # next action
+    # step <index>: <summarize the progress so far and analyze the current state of the web page. Provide the concrete reason to perform the next action>
+    click_and_type(element=<description>, content=<content>, element_id=__element_id__)
+    # step summary: <brief step description>
+    ```
+
+all_in_one_v6_type_stop_empty:
+  note: Generate stop action
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose creative and diverse browser-based tasks that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `scroll(up|down)` - Scroll the page up or down.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the the domain of the web page.
+    2. Brainstorm __num_of_tasks__ task categories that would have the current page as the final state. It must be a task that if someone has completed all the actions, he will be at the current page. Be creative.
+    3. For each task category, propose a concrete task that has this web page as the final state. No futher action should be done to the current page to complete the task. You want the concrete task to be unambiguous and clear so that no further clarification is needed to perform the task.
+    4. The task cannot be related to learning or exploring.
+    5. Given a concrete task, you are ask to come up with the past actions that leads to the current page.
+      * Requirement for past actions: You should write down each past action in the details. You want to group all actions into multiple sub-sections, each section corresponds to a logical and actionable sub-task. The next action could start with a new sub-task. You can omit the `elemement_id` if they are not in the current page. There should be exactly one action at each step. The action must be in the action space. DO NOT give goto() or new_tab() as first step.
+      * Requirement for next action: The task has been completed, so the next action is stop(). Provide the reasoning behind your past actions, your understanding of the current page, and the concrete reason for determining the task has been completed.
+
+    ## Format of the response
+    You are asked to provide the action sequence for __LIST_task_index_history_length__. Your answer should follow the following format:
+
+    <Analysis and understanding about the domain and the concrete content of the web page>
+    <The list of __num_of_tasks__ creative task categories>
+    <The concrete tasks for task category __LIST_task_index__. Remember, a concrete task needs to include concrete details so that no further clarification is required when performing the task. Use imperative sentences.>
+
+    __batch_action_template__
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+batch_template_v1_stop_empty:
+  note: add stop
+  message: |
+    ```python
+    # task: <repeat concrete task #__sample_task_index__>
+
+    # --------------------
+    # past actions (history)
+    __history_template__
+
+    # --------------------
+    __next_is_subtask_start__
+    # next action
+    # step <index>: <summarize the progress so far and analyze the current state of the web page. provide the concrete reason why the task has been completed>
+    stop()
+    # step summary: <brief step description>
+
+all_in_one_v6_type_stop_ans:
+  note: Generate stop action
+  system: You are helpful assistant.
+  user_message: |
+    ## Task overview
+    Given the accessibility tree of a web page, your goal is to propose creative and diverse browser-based tasks that involves interacting with this page, along with the previous actions that lead to the current state and the next action needed to be taken to accomplish the task.
+
+    ## Action space
+    Here are the allowed actions that you can take to interact with the web page:
+    `click(element: str, element_id: int=0)` - Click on an element. `element` is the displayed text or the most representative attribute of the HTML element. `element_id` is the index of the element at the beginning of the node.
+    `click_and_type(element: str, content: str, element_id: int=0)` - Click and type `content` into an `element`.
+    `key_press(key_comb: str)` - Press a key combination. `key_comb` is the combination of keys you want to press on. The default OS is MacOS if there is no explicit specification in the article.
+    `goto(url: str)` - Navigate to `url`
+    `go_back()` - Go back to the previous page.
+    `go_forward()` - Go forward to the next page.
+    `new_tab()` - Open a new tab.
+    `close_tab()` - Close the current tab.
+    `switch_tab(tab_index: int)` - Switch to the tab with index `tab_index`, starting from 0.
+    `scroll(up|down)` - Scroll the page up or down.
+    `stop(answer: str)` - Stop the task and answer `answer` to the question.
+
+    ## Guidelines
+    You will follow the guidelines below to perform the task:
+    1. Examine the web page to understand the the domain of the web page.
+    2. Brainstorm __num_of_tasks__ task categories that would have the current page as the final state. It must be a task that could be answered by existing information of the page. Be creative.
+    3. For each task category, propose a concrete task that has this web page as the final state. No futher action should be done to the current page to complete the task. You want the concrete task to be unambiguous and clear so that no further clarification is needed to perform the task.
+    4. The task cannot be related to learning or exploring.
+    5. Given a concrete task, you are ask to come up with the past actions that leads to the current page.
+      * Requirement for past actions: You should write down each past action in the details. You want to group all actions into multiple sub-sections, each section corresponds to a logical and actionable sub-task. The next action could start with a new sub-task. You can omit the `elemement_id` if they are not in the current page. There should be exactly one action at each step. The action must be in the action space. DO NOT give goto() or new_tab() as first step.
+      * Requirement for next action: The task has been completed, so the next action is stop(answer: str) action with the answer string in the bracket. Provide the reasoning behind your past actions, your understanding of the current page, and the concrete reason for giving this answer. The answer string would need to come from existing content of the current page. The answer string needs to answer the task. The answer string can not be an action.
+
+    ## Format of the response
+    You are asked to provide the action sequence for __LIST_task_index_history_length__. Your answer should follow the following format:
+
+    <Analysis and understanding about the domain and the concrete content of the web page>
+    <The list of __num_of_tasks__ creative task categories>
+    <The concrete tasks for task category __LIST_task_index__. Remember, a concrete task needs to include concrete details so that no further clarification is required when performing the task. Use imperative sentences.>
+
+    __batch_action_template__
+
+    ## The Accessibility Tree
+    __ax_tree__
+
+batch_template_v1_stop_ans:
+  note: add stop
+  message: |
+    ```python
+    # task: <repeat concrete task #__sample_task_index__>
+
+    # --------------------
+    # past actions (history)
+    __history_template__
+
+    # --------------------
+    __next_is_subtask_start__
+    # next action
+    # step <index>: <summarize the progress so far and analyze the current state of the web page. provide the concrete reason why the task has been completed>
+    stop(answer: str)
+    # step summary: <brief step description>

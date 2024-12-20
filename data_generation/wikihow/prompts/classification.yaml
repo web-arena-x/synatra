@@ -1,0 +1,75 @@
+v1:
+  system: you are a helpful assitant.
+  user_message: |
+    I am searching for WikiHow articles that teach how to perform tasks in web browsers in a computer.
+    Title: __title__ (__method_title__).
+    Content: __steps___
+
+    You can answer "Yes" if it's a qualified article or "No" if it's not.
+    Answer:
+v2:
+  system: you are a helpful assitant.
+  user_message: |
+    Determine if a wikiHow article is about a task that is exclusively on performed using either a computer or a mobile phone. Your response should start with step-by-step reasoning and conclude with "Yes" or "No"
+
+    Article:
+    Make Windows Detect a USB Flash Disk (Verifying Driver Installation and USB Devices)
+
+    Unplug then plug-in your USB flash disk. Unplug the device and wait five seconds, then plug the device back in. This will cause Windows to attempt to re-read the device if it was unplugged for a period of time.
+    If the device is plugged into a USB hub that does not feature an external power supply, try plugging the device in without the hub. A USB hub may not have enough power to process the device. If the device features an external power source, the hub may need to be replaced.
+    ....
+
+    Answer:
+    Let's think step-by-step. This article teaches how to connect a physical flash disk to a computer, it requires a physical USB flash disk and physical interactions such as plug, so the answer is "No".
+
+    Article:
+    Change Your Apple ID Password (On the Web)
+
+    Open the Apple ID website. Go to https://appleid.apple.com/ in your computer's web browser. This is the official website for managing your Apple ID information, including your password.
+    Log into your Apple ID account. Unless you've accessed the Apple ID website in the last 30 minutes, you'll have to log in by entering your Apple ID email address and password in the middle of the page.
+    If you have two-factor authentication enabled for your account, you'll need to verify your login by opening your iPhone, tapping  when prompted, and then entering the six-digit code that appears into the text field on your computer.
+    Scroll down to the "Security" section.
+    ....
+
+    Answer:
+    Let's think step-by-step. This article talks about change Apple ID password on the web. The task can be exclusively performed using a computer, so the answer is "Yes".
+
+    Article:
+    __article__
+
+    Answer:
+v3:
+  system: you are a helpful assitant.
+  user_message: |
+    Classify if an article is about performing a task in a web browser, a desktop application or a mobile application. Your response should start with step-by-step reasoning and conclude with "Yes" or "No"
+
+    Article:
+    __article__
+
+    Answer:
+v4:
+  note: just the title, but with few-shot examples
+  system: you are a helpful assitant.
+  user_message: |
+    Given the title of an article, determine if it is about performing a task solely with computer or mobile phone's graphical user interface, and without any physical world configurations.
+
+    input: How to Set Up Chromecast WiFi (Using an Android Phone or Tablet)
+    output: Set Up Chromecast WiFi involves both a mobile application and physical interactions with the Chromecast device such as plug in the device, so the answer is "No"
+
+    input: How to Change Your Desktop Wallpaper on Linux Mint (Using the Linux Mint Wallpapers)
+    output: Linux Mint is a desktop operating system, and changing the desktop wallpaper is typically done through the system settings or desktop environment's configuration tools, which are desktop applications, so the answer is "Yes"
+
+    input: How to delete a file using command line in Linux
+    output: Command line interface (CLI) in Linux is a text-based interface not a graphical user interface (GUI), so the answer is "No"
+
+    input: How to Reboot an iPad (Frozen iPads)
+    output: Rebooting an iPad usually involves physical actions like pressing and holding buttons on the iPad, so the answer is "No"
+
+    input: How to Connect the Kindle Fire to the Internet (Connecting to an Existing Wi-Fi Network)
+    output: Kindle is neither a computer nor a mobile phone, so the answer is "No"
+
+    input: How to Pair AirPods to an iPhone (If Your AirPods Won't Connect)
+    output: Pairing AirPods with an iPhone typically includes physical actions such as opening the AirPods case near the iPhone and possibly pressing a button on the AirPods case, so the answer is "No"
+
+    input: __title__
+    output:

@@ -1,0 +1,51 @@
+Implement the steps described in this paragraph in Python with the following possible actions:
+```
+{"action": "click", "element": "name of the element", "element_index": "index number of the element if there are multiple elements with the same name"}
+{"action": "type", "field": "name of the field", "content": "text to be entered"}
+{"action": "press", "key_comb": "specific keys to be pressed together"}
+{"action": "scroll", "direction": "up or down"}
+{"action": "new_tab"}
+{"action": "tab_focus", "tab_index": "index number of the tab to be focused if there are multiple open tabs"}
+{"action": "close_tab"}
+{"action": "goto", "url": "specific url"}
+{"action": "go_back"}
+{"action": "go_forward"}
+```
+There are a few possible transformations you should apply in the implementation if they are applicable:
+1. If a step describes a mobile phone setting, you should map it to the action in Chrome browser on a laptop.
+2. If a step is not concrete enought, you should come up with a concrete scenario with concrete values for each argument in the action.
+3. If a step is less relevant to the primary topic, you should skip it.
+
+Topic: Send an Email Using Gmail
+Paragraph: Click Compose. It's in the upper-left side of your Gmail inbox. Doing so opens a "New Message" window in the lower-right corner of the page.If you're using the old version of Gmail, you'll click COMPOSE here instead.
+Implementation:
+```python
+# Click compose button
+click(element="Compose")
+```
+
+Topic: Download Songs, Albums, and Playlists from Spotify
+Paragaph: Create a playlist if you want to download individual songs (optional). You can only download albums and playlists from Spotify, not individual songs. If you don't want an entire existing playlist or a full album, you can just add the songs you want to download to a new playlist. Here's how: Click Create Playlist in the left panel. Click My Playlist, type a name for the playlist, and then tap Save. Add songs to the playlist by dragging them to the new playlist. You can also click the three dots on any song, select Add to playlist, and select your new playlist name.
+Implementation:
+```python
+# want to download individual lofi songs
+# create a playlist
+click(element="Create Playlist")
+click(element="My Playlist")
+type(field="Playlist Name", content="lofi")
+click(element="Save")
+# add songs to the playlist
+# search for lofi songs
+type(field="Search", content="lofi")
+# want to add two songs
+click(element="...", element_index=0)
+click(element="Add to playlist")
+click(element="lofi")
+click(element="...", element_index=1)
+click(element="Add to playlist")
+click(element="lofi")
+```
+
+Topic: Cancel an Amazon Order After It Ships Using the App
+Paragraph: Choose a cancellation reason from the drop-down menu. Amazon does not require a reason for cancellation, but providing a reason ensures that your request will be approved. Amazon's menu of options covers just about every reason you might want to cancel, such as an incorrect shipping address or the item being too expensive. The "Request cancellation" list will include any incomplete orders, so be sure to check the box next to any items for which you want to request cancellation.
+Implementation:

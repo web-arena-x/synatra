@@ -1,0 +1,169 @@
+v1:
+  note: generate a simple html first then enrich it. working with GPT-3.5
+  outcome: the generation often only has the minimal html structure and functions such as a single button
+  system: You are a Chrome browser. You know everything about web pages.
+  user_message:
+  - |
+    Given a task and two actions, your goal is to produce a realistic HTML of a web page. The requirements are as follows:
+    - the web page is a result of performing the first action
+    - the webpage contains the required interactive elements to perform the second action
+    - indicate the required element for the second action in the HTML by inserting an attribute `data-test-id` with value `action2`
+
+    Task: __task__
+    ```
+    __action1__
+    __action2__
+    ```
+  - |
+    Enrich the HTML with more complex and realistic functionalities.
+v2:
+  note: one-pass generation, working with GPT-4 only
+  system: You are a helpful assistant.
+  user_message:
+  - |
+    Given a task and two actions, your goal is to produce a realistic HTML of a web page. The requirements are:
+    - The web page reflects the result of performing the past action
+    - The webpage contains the required elements to perform the next action
+    - Mark the required element to perform the next action in the HTML by inserting `data-test-id=curr_action` in the relevant elements
+    - The web page should be complex and realistic. You can be creative on adding other HTML components and other content in the same page.
+
+    task: __task__
+    past action: `__action1__`
+    next action: `__action2__`
+v3:
+  note: Provide more context (the summary of the original doc, the whole sequence of actions) and ask to generate the HTML between two steps. Hopefully this could increase the functionalities of a webpage
+  system: You are an expert frontend developer.
+  user_message:
+  - |
+    Given a sequence of past actions and the next action, your goal is to code a realistic HTML of the web page with the following requirements:
+    - The web page reflects the result of performing the past actions. To do so, you should go over all past actions and use your knowledge on web UI design to decide which results should be included in your HTML.
+    - The webpage contains the required elements to perform the next action. Mark the required element to perform the next action in the HTML by inserting `data-test-id=curr_action` in the relevant elements
+    - You should wrap the HTML code inside ```html ```
+
+    Note that I understand that coding a web page as realistic as in everyday use is not easy. However, I don't have fingers and I will really appreciate that if you could code an elaborate full HTML with complex functionalities, so that I could directly use it without further revisions. You have the required skills! Please take your time in generating a detailed website. No rush.
+
+    task: __task__
+
+    past actions:
+    ```python
+    __past_actions__
+    ```
+
+    next action:
+    ```python
+    __next_action__
+    ```
+v4:
+  note: Based on v3, have a better structure. Start with requirement and explict tell the model how to perform the task. Source - https://arxiv.org/pdf/2309.15817.pdf
+  system: You are an expert front-end developer with speciality in HTML, CSS and JavaScript.
+  user_message:
+  - |
+    # Task Overview
+    You are given
+    - A browser-based task
+    - A seuqnece of past actions to perform the task and
+    - The next action to perform the task.
+    Your goal is to recover the HTML and the dynamic of a web application with the following requirements:
+    - The web page should visually and functionally mirror the outcomes of the past actions.
+    - It should have the necessary elements to perform the next action.
+    - The web page embodies a same level of functionality and content richness as advanced web applications on the internet.
+
+    # Guidelines
+    You should follow these steps to complete the task:
+    1. Based on the provided information, use your rich experience in web development to have a high-level design of the web page, including the functionalities, the layout, the interactive elements and others. The design should be as similar as the web applications you have seen on the internet.
+    2. Analyze the past actions and determine which of these actions have visible or functional impacts on the web page you design. Reflect the effects of these past actions in your HTML code. This may involve updating text, adding new elements, or modifying the layout or styles to represent the state of the web page after these actions.
+    3. Utilize your web development expertise to thoughtfully design the interactive element that facilitates the next action. Pay special attention to the choice of element type, attributes, and other essential characteristics to ensure seamless interaction. Specifically, assign the attribute id="next-action-target-element" to this particular HTML element.
+    4. Enrich the HTML with more information and content, such as more options, more text. The content should be creative and realistic, avoid boilerplate text such as email@example.com and example title.
+
+    # Provided information
+    task: __task__
+
+    past actions:
+    ```python
+    __past_actions__
+    ```
+
+    next action:
+    ```python
+    __next_action__
+    ```
+
+    # Response format
+    ```html
+    <HTML that fullfil the requirements>
+    ```
+    Stop the generation right after the HTML code.
+v5:
+  note: Generate the HTML for many steps at once.
+  comment: Not working, tend to be very short
+  system: You are an expert front-end developer.
+  user_message:
+  - |
+    # Task overview
+    You are given a browser-based task and a sequence of actions to accomplish the task. Your goal is to recover the web page and their dynamic changes after each action. The web page should visually and functionally mirror the outcomes of the past actions and have the necessary elements to perform the next action. The web page should embody the same level of functionality and content richness as advanced web applications on the internet.
+
+
+    # Guidelines
+    You should follow these steps to complete the task:
+    1. Based on the provided information, use your rich experience in web development to have a high-level design of the web page, including the functionalities, the layout, the interactive elements and others. The design should be as rich as the web applications you have seen on the internet.
+    2. Analyze the past actions and determine which of these actions have visible or functional impacts on the web page you design. Reflect the effects of these past actions in your HTML code. This may involve updating text, adding new elements, or modifying the layout or styles to represent the state of the web page after these actions.
+    3. Utilize your web development expertise to thoughtfully design the interactive element that facilitates the next action. Pay special attention to the choice of element type, attributes, and other essential characteristics to ensure seamless interaction. Specifically, assign the attribute id="next-action-target-element" to this particular HTML element.
+    4. Enrich the HTML with more information and content, such as more options, more text. The content should be creative and realistic, avoid boilerplate text such as email@example.com and example title.
+
+    Follow the guideline and elaborate your execution of each step before coding. Wrap your HTML code inside ```html ```
+
+    # Provided information
+    task: __task__
+
+    action sequence:
+    ```python
+    __action_sequence__
+    ```
+
+    # Response format
+    You want to repeat the process to generate the HTML for the transition between `__pre1__` and `__post1__`:
+
+    ```html
+    <Your HTML code here that mark the transition between `__pre1__` and `__post1__`>
+    ```
+
+v6:
+  note: Give more hints on what does realistic mean
+  system: You are an expert front-end developer with speciality in HTML.
+  user_message:
+  - |
+    # HTML Background Knowledge
+    Commonly used interactable elements in HTML:
+    ['a', 'button', 'input', 'textarea', 'select', 'option', 'label', 'form', 'details', 'summary', 'map', 'area', 'iframe', 'embed', 'object', 'dialog', 'menu', 'fieldset', 'legend', 'datalist', 'output', 'progress', 'meter', 'keygen']
+
+    # Task Overview
+    You are given:
+    - A browser-based task
+    - A seuqnece of past actions to perform the task and
+    - The next action to perform the task.
+
+    Your goal is to recover the HTML and the dynamic of a web application with the following requirements:
+    - The web page embodies a same level of content richness as advanced web applications on the internet. That is, the web page should have around 80 elements and at least 20 interactable elements. The depth of the DOM tree should be around 7. The length is at least 3000 tokens.
+    - Analyze the past actions and determine which of these actions have visible or functional impacts on the web page you design. Reflect the effects of these past actions in your HTML code. This may involve updating text, adding new elements, or modifying the layout or styles to represent the state of the web page after these actions.
+    - Design the interactable element that enables the next action. Make sure the choice of element type, attributes, and other essential characteristics are correct. For example, a text field is not interactable. Once the element is designed, assign the attribute id="next-action-target-element" to this interactable element.
+    - Please focus on making the static HTML visually rich. Ignore CSS animations & style and JavaScript functionality in your HTML code.
+    - Provide the concrete reason to perform the next action.
+
+    # Response format
+    ```html
+    <HTML that fullfils the requirements, make sure `next-action-target-element` is always included>
+    ```
+    <Summarize the progress by analyzing past actions. Provide a brief reason for performing the next action. Keep it short. Use imperative sentences.>
+
+    # Provided information
+    task: __task__
+
+    past actions:
+    ```python
+    __past_actions__
+    ```
+
+    next action:
+    ```python
+    __next_action__
+    ```

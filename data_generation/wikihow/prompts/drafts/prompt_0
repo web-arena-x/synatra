@@ -1,0 +1,50 @@
+Your goal is to teach kids to use the Chrome browser. While many online resources cater to adults, they often lack the specificity and clarity needed for young minds. We aim to distill these articles into easily understandable steps tailored for primary school students.
+
+Guidelines for Refining Browser Task Instructions for Kids:
+
+1. Stay focused: Adult-oriented articles often delve into multiple related subjects, which might overwhelm or sidetrack young learners. When refining for kids, prioritize clarity and brevity. Stick strictly to the primary topic, and if the original piece presents multiple scenarios, use your discretion to select the single most relevant and straightforward one for your revised article
+
+2. Provide clear, step-by-step browser commands: Introduce students to specific browser commands whenever it is avaliable for any step. Ensure each command is straightforward and easy to understand. Here are the main commands:
+
+   - Page Operation Commands:
+     * `click [element]`: Directly engage with any element on the webpage, such as buttons or links.
+       - Format: `{"action": "click", "element": "name of the element"}`
+     * `type [field] [content]`: Enter text or information into a specified input area.
+       - Format: `{"action": "type", "field": "name of the input field", "content": "text to be entered"}`
+     * `press [key combination]`: Use specific key combinations, like Ctrl+v, to perform actions.
+       - Format: `{"action": "press", "key combination": "specific keys to be pressed together"}`
+     * `scroll [up/down]`: Navigate upwards or downwards on the webpage.
+       - Format: `{"action": "scroll", "direction": "up or down"}`
+
+   - Tab Management Commands:
+     * `new_tab`: Open a fresh browser tab to explore new content.
+       - Format: `{"action": "new_tab"}`
+     * `tab_focus [tab_index]`: Redirect the browser's view to a specific tab using its numerical placement.
+       - Format: `{"action": "tab_focus", "tab_index": "index number of the tab"}`
+     * `close_tab`: End your session on the active tab.
+       - Format: `{"action": "close_tab"}`
+
+   - URL Navigation Commands:
+     * `goto [url]`: Journey to a particular online destination via its URL.
+       - Format: `{"action": "goto", "url": "specific web address"}`
+     * `go_back`: Revisit the webpage you were on immediately before the current one.
+       - Format: `{"action": "go_back"}`
+     * `go_forward`: Progress to a subsequent page, especially if you've just used the 'go_back' command.
+       - Format: `{"action": "go_forward"}`
+
+3. Use concrete examples: Instead of providing abstract instructions, always anchor them with tangible, real-world examples that kids can relate to.  For example, you can enrich an article about "how to download songs from Spotify" with concrete song titles, artists, or albums and center your refined article around that concrete example.
+
+4. Standardize to Chrome browser: For consistency and ease of understanding, adapt all examples to fit the context of the Chrome browser on a laptop. If the original article was based on other platforms, like mobile phones, draw on your expertise to translate those instructions to a Chrome browser setting.
+
+Task: Download Songs, Albums, and Playlists from Spotify
+
+Original article:
+Open the Spotify app on your PC or Mac. Click or double-click the Spotify app icon, which is three black, horizontal bars on a green background. If you haven't already downloaded the Spotify desktop app, you can get it from https://www.spotify.com/us/download.
+
+Create a playlist if you want to download individual songs (optional). You can only download albums and playlists from Spotify, not individual songs. If you don't want an entire existing playlist or a full album, you can just add the songs you want to download to a new playlist. Here's how: Click + Create Playlist in the left panel. Click My Playlist, type a name for the playlist, and then tap Save. Add songs to the playlist by dragging them to the new playlist. You can also click the three dots on any song, select Add to playlist, and select your new playlist name.
+
+Select a playlist or album. This displays all of the songs on the selected playlist or album.
+
+Click the gray download arrow at the top of the playlist or album. If the arrow inside of a circle at the top of the playlist or album is gray, click it to start the download. The arrow will turn green once the download is complete. When a song finishes downloading, it will have a downward-facing arrow icon to the right of it.
+
+Listen to Spotify music offline. Whenever you're not connected to the internet, you can open Spotify, click your downloaded playlist, and click the "Play" icon to the left of a song to play it. If you want to stay connected to the internet but not use your internet connection to listen, you can turn on Offline Mode. On Windows, click the File menu and choose Offline Mode. On a Mac, click the Spotify menu and choose Offline Mode.

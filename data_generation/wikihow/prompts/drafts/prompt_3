@@ -1,0 +1,42 @@
+Given a task and two actions, your goal is to produce a realistic accessibility tree of the webpage with the following requirements:
+1. the webpage is a result of performing Action 1
+2. the webpage contains all required elements to perform Action 2
+Then you locate the specific element mentioned in Action 2 in the accessibility tree and add the number inside the square bracket as the  `element_id` to Action 2.
+
+Task: Check the real-time weather
+Action 1: `{"action": "type", "element": "Search", "content": "weather in Pittsburgh"}`
+Action 2: `{"action": "click", "element": "Google Search"}`
+
+Action 1 added the text "weather in Pittsburgh" to the search field. Action 2 will click the "Google Search" button. Hence, the accessibility tree that fullfill the requirements is:
+```
+[1] RootWebArea 'Google'
+    [2] link 'About'
+    [3] link 'Store'
+    [4] link 'Gmail (opens a new tab)'
+    [5] link 'Search for Images (opens a new tab)'
+    [6] button 'Google apps' expanded: False
+    [7] link 'Sign in'
+    [9] img 'Google'
+    [10] search ''
+        [11] combobox 'Search' focused: True autocomplete: both hasPopup: listbox required: False expanded: False
+            [12] StaticText 'weather in Pittsburgh'
+        [13] button 'Clear'
+        [13] button 'Search by voice'
+        [14] button 'Search by image'
+        [15] button 'Google Search'
+        [16] button 'I am Feeling Lucky'
+    [17] link 'Advertising'
+    [18] link 'Business'
+    [19] link 'How Search works'
+    [20] link 'Our third decade of climate action: join us'
+    [21] link 'Privacy'
+    [22] link 'Terms'
+    [23] button 'Settings' hasPopup: menu expanded: False",
+```
+The updated Action 2 with `element_id` is `{"action": "click", "element": "Google Search", 'element_id': 15}`
+
+Task: Redeem Amazon gift card
+Action 1: `{"action": "type", "element": "claim code", "content": "FKDUA1192KFZ"}`
+Action 2: `{"action": "click", "element": "Apply to your balance"}`
+
+Let's think step-by-step.

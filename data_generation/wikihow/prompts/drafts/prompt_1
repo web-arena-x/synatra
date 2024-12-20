@@ -1,0 +1,67 @@
+You are given an article about how to perform a web-based task and your goal is to implement it in Python with the given actions.
+
+# Avaliable Actions
+Here are the available actions:
+```
+{"action": "click", "element": "name or the description of the element"}
+{"action": "type", "field": "name or the description of the field", "content": "text to be entered"}
+{"action": "press", "key_comb": "key or key combinations"}
+{"action": "scroll", "direction": "up or down"}
+{"action": "new_tab"}
+{"action": "tab_focus", "tab_index": "index number of the tab to be focused if there are multiple open tabs"}
+{"action": "close_tab"}
+{"action": "goto", "url": "specific url"}
+{"action": "go_back"}
+{"action": "go_forward"}
+```
+
+# Implementation Guideline
+1. Stay focused: Stick strictly to the primary topic. If the original piece presents multiple scenarios, use your discretion to select the single most relevant and straightforward one for your implementation.
+2. Use concrete examples in your implementations: You always want to imagine concrete scenarios. That is, you want to have concrete values for each argument in the action other than a generic description.
+3. Standardize to Chrome browser: Adapt all examples to fit the context of the Chrome browser on a laptop. If the original article is based on other platforms, like mobile phones, draw on your expertise to translate those instructions to a Chrome browser setting.
+4. Implement the step-by-step Where the steps in the original article offers a high-level overview, break it down into comprehensive step-by-step actions. Ensure that each step is straightforward, actionable, and easy to follow.
+
+Here is an example:
+# Choose recipients for an email in Gmail
+
+## Original article
+Open Gmail. Go to https://www.gmail.com/ in your computer's web browser. This will open your Gmail inbox if you're logged in.
+If you aren't logged into your Gmail account, enter your email address and password when prompted.
+
+Click Compose. It's in the upper-left side of your Gmail inbox. Doing so opens a "New Message" window in the lower-right corner of the page.If you're using the old version of Gmail, you'll click COMPOSE here instead.
+
+Enter the other person's email address. Click the "To" or "Recipients" text box at the top of the New Message window, then type in the email address of the person to whom you want to send your email. To add multiple email addresses, type in the first email address, press Tab, and repeat with the other email addresses. If you want to CC or BCC someone on the email, click either the Cc link or the Bcc link in the far-right side of the "To" text field, then type the email address you want to CC or BCC into the "Cc" or "Bcc" text field, respectively.
+
+## Implementation
+First, I will follow the guidelines to refine the original article. Then, I will implement the refined article in Python.
+
+### Refined article
+This article teaches how to send an email using Gmail.  I will make a few assumptions on the concrete scenarios: I assume the user already logged in to Gmail, and the user wants to send an email to "healthy_life@gmail.com" and CC "happy_vocation@gmail.com". Hence, the refined article is
+1. Go to Gmail website
+2. Click the "Compose" button
+3. Enter the email address of the recipient "healthy_life@gmail.com" in the "To" field
+4. Expand the "To" field by clicking the "Expand More" button
+5. Enter the email address of the CC recipient "happy_vocation@gmail.com"
+
+### Python implementation
+```python
+goto(url="https://mail.google.com")
+click(element="Compose")
+type(field="To", content="healthy_life@gmail.com")
+click(element="Expand More")
+type(field="Cc", content="happy_vocation@gmail.com")
+```
+
+Implement the following article in Python:
+# Download Songs, Albums, and Playlists from Spotify
+
+## Original article
+Open the Spotify app on your PC or Mac. Click or double-click the Spotify app icon, which is three black, horizontal bars on a green background. If you haven't already downloaded the Spotify desktop app, you can get it from https://www.spotify.com/us/download.
+
+Create a playlist if you want to download individual songs (optional). You can only download albums and playlists from Spotify, not individual songs. If you don't want an entire existing playlist or a full album, you can just add the songs you want to download to a new playlist. Here's how: Click + Create Playlist in the left panel. Click My Playlist, type a name for the playlist, and then tap Save. Add songs to the playlist by dragging them to the new playlist. You can also click the three dots on any song, select Add to playlist, and select your new playlist name.
+
+Select a playlist or album. This displays all of the songs on the selected playlist or album.
+
+Click the gray download arrow at the top of the playlist or album. If the arrow inside of a circle at the top of the playlist or album is gray, click it to start the download. The arrow will turn green once the download is complete. When a song finishes downloading, it will have a downward-facing arrow icon to the right of it.
+
+Listen to Spotify music offline. Whenever you're not connected to the internet, you can open Spotify, click your downloaded playlist, and click the "Play" icon to the left of a song to play it. If you want to stay connected to the internet but not use your internet connection to listen, you can turn on Offline Mode. On Windows, click the File menu and choose Offline Mode. On a Mac, click the Spotify menu and choose Offline Mode.
